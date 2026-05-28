@@ -1,1360 +1,688 @@
-```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nusantara Mega Scholar: The Ultimate High School Quest</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/fontsource-inter@4.5.0/index.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        
-        /* Screen Shake Animation */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
-            20%, 40%, 60%, 80% { transform: translateX(10px); }
+        /* ============================================
+           CSS VARIABLES & RESET
+           ============================================ */
+        :root {
+            --primary: #6C63FF;
+            --primary-dark: #5A52D5;
+            --secondary: #FF6584;
+            --accent: #00D2FF;
+            --success: #00C853;
+            --warning: #FF9800;
+            --danger: #F44336;
+            --bg-dark: #0f0c29;
+            --bg-mid: #302b63;
+            --bg-light: #24243e;
+            --text-light: #ffffff;
+            --text-muted: #b0b0c0;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --difficulty-easy: #00C853;
+            --difficulty-medium: #FF9800;
+            --difficulty-hard: #F44336;
         }
-        .screen-shake { animation: shake 0.5s ease-in-out; }
-        
-        /* Green Flash for Correct */
-        @keyframes greenFlash {
-            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-            70% { box-shadow: 0 0 0 20px rgba(34, 197, 94, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .correct-flash { animation: greenFlash 0.6s ease-out; }
-        
-        /* Red Flash for Wrong */
-        @keyframes redFlash {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark), var(--bg-mid), var(--bg-light));
+            min-height: 100vh;
+            color: var(--text-light);
+            overflow-x: hidden;
+            position: relative;
         }
-        .wrong-flash { animation: redFlash 0.6s ease-out; }
-        
-        /* Confetti Particles */
-        .confetti-piece {
+
+        /* Background animated particles */
+        body::before {
+            content: '';
             position: fixed;
-            width: 12px;
-            height: 12px;
-            background: #f00;
-            animation: confettiFall 3s ease-out forwards;
-            z-index: 1000;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(108, 99, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 101, 132, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(0, 210, 255, 0.1) 0%, transparent 50%);
+            z-index: 0;
             pointer-events: none;
         }
-        @keyframes confettiFall {
-            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+
+        /* ============================================
+           LAYOUT & CONTAINERS
+           ============================================ */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
         }
-        
-        /* Celebration Text */
-        @keyframes blinkCelebrate {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.05); }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease;
         }
-        .celebrate-blink { animation: blinkCelebrate 0.6s ease-in-out 3; }
-        
-        /* Timer Pulse */
-        @keyframes timerPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
+
+        .screen.active {
+            display: block;
         }
-        .timer-pulse { animation: timerPulse 0.4s ease-in-out; }
-        
-        /* Card Hover Effects */
-        .category-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .category-card:hover {
-            transform: translateY(-8px) scale(1.02);
-        }
-        
-        /* Smooth Transitions */
-        .fade-in { animation: fadeIn 0.4s ease-in; }
+
+        /* ============================================
+           ANIMATIONS
+           ============================================ */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
-        /* Progress Bar */
-        .timer-bar { transition: width 1s linear; }
-        
-        /* Badge Styles */
-        .badge-gold { background: linear-gradient(135deg, #FFD700, #FFA500); }
-        .badge-silver { background: linear-gradient(135deg, #C0C0C0, #A0A0A0); }
-        .badge-bronze { background: linear-gradient(135deg, #CD7F32, #8B4513); }
-    </style>
-</head>
-<body class="bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 min-h-screen text-white">
-    <div id="app" class="min-h-screen flex flex-col items-center justify-center p-4">
-        <!-- Game content injected here -->
-    </div>
 
-    <script>
-    /**
-     * ============================================
-     * NUSANTARA MEGA SCHOLAR - GAME ENGINE
-     * ============================================
-     * Struktur modular:
-     * - GameState: Manajemen state game
-     * - QuestionBank: Database soal IPA, IPS, Bahasa Indonesia
-     * - MathGenerator: Generator soal matematika dinamis
-     * - GameEngine: Logika gameplay utama
-     * - UIManager: Render UI dan animasi
-     */
-
-    // ==========================================
-    // 1. GAME STATE - Manajemen state terpusat
-    // ==========================================
-    const GameState = {
-        currentScreen: 'menu', // 'menu', 'game', 'gameover'
-        selectedCategory: null, // 'IPA', 'IPS', 'BAHASA', 'MATEMATIKA'
-        score: 0,
-        lives: 3,
-        combo: 0,
-        maxCombo: 0,
-        currentDifficulty: 'MUDAH',
-        timer: 15,
-        timerInterval: null,
-        currentQuestion: null,
-        questionIndex: 0,
-        usedQuestions: new Set(),
-        isAnswering: false,
-        badge: null
-    };
-
-    // ==========================================
-    // 2. QUESTION BANKS - Database soal per kategori
-    // ==========================================
-    const QuestionBank = {
-        IPA: {
-            MUDAH: [
-                {
-                    q: "Simbol keselamatan kerja gambar tengkorak di lab kimia artinya?",
-                    a: "Beracun/Toksik",
-                    options: ["Beracun/Toksik", "Mudah Terbakar", "Korosif", "Radioaktif"]
-                },
-                {
-                    q: "Alat yang digunakan untuk mengukur suhu di laboratorium adalah?",
-                    a: "Termometer",
-                    options: ["Termometer", "Barometer", "Higrometer", "Amperemeter"]
-                },
-                {
-                    q: "Tingkat keanekaragaman hayati yang menunjukkan variasi dalam satu spesies disebut?",
-                    a: "Keanekaragaman Gen",
-                    options: ["Keanekaragaman Gen", "Keanekaragaman Spesies", "Keanekaragaman Ekosistem", "Keanekaragaman Populasi"]
-                },
-                {
-                    q: "Satuan SI untuk panjang adalah?",
-                    a: "Meter",
-                    options: ["Meter", "Sentimeter", "Kilometer", "Mil"]
-                },
-                {
-                    q: "Proses fotosintesis terjadi di bagian sel tumbuhan yang disebut?",
-                    a: "Kloroplas",
-                    options: ["Kloroplas", "Mitokondria", "Nukleus", "Ribosom"]
-                },
-                {
-                    q: "Zat yang memiliki pH kurang dari 7 bersifat?",
-                    a: "Asam",
-                    options: ["Asam", "Basa", "Netral", "Garam"]
-                },
-                {
-                    q: "Kingdom makhluk hidup yang mencakup jamur adalah?",
-                    a: "Fungi",
-                    options: ["Fungi", "Plantae", "Animalia", "Protista"]
-                },
-                {
-                    q: "Hukum Newton I disebut juga hukum?",
-                    a: "Kelembaman",
-                    options: ["Kelembaman", "Gravitasi", "Aksi-Reaksi", "Percepatan"]
-                }
-            ],
-            SEDANG: [
-                {
-                    q: "Alat ukur yang paling tepat untuk mengukur diameter dalam sebuah pipa kecil adalah?",
-                    a: "Jangka Sorong",
-                    options: ["Jangka Sorong", "Mikrometer Sekrup", "Penggaris", "Meteran Gulung"]
-                },
-                {
-                    q: "Perubahan lingkungan yang disebabkan oleh aktivitas manusia contohnya?",
-                    a: "Deforestasi",
-                    options: ["Deforestasi", "Erupsi Gunung", "Gempa Bumi", "Tsunami"]
-                },
-                {
-                    q: "Partikel penyusun inti atom adalah?",
-                    a: "Proton dan Neutron",
-                    options: ["Proton dan Neutron", "Proton dan Elektron", "Elektron dan Neutron", "Hanya Proton"]
-                },
-                {
-                    q: "Gerak lurus berubah beraturan (GLBB) memiliki ciri?",
-                    a: "Percepatan konstan",
-                    options: ["Percepatan konstan", "Kecepatan konstan", "Percepatan nol", "Percepatan berubah"]
-                },
-                {
-                    q: "Lapisan atmosfer tempat terjadinya cuaca adalah?",
-                    a: "Troposfer",
-                    options: ["Troposfer", "Stratosfer", "Mesosfer", "Termosfer"]
-                },
-                {
-                    q: "Nomor massa suatu atom menunjukkan jumlah?",
-                    a: "Proton + Neutron",
-                    options: ["Proton + Neutron", "Proton saja", "Elektron saja", "Proton + Elektron"]
-                },
-                {
-                    q: "Pencemaran air yang disebabkan oleh limbah pupuk disebut?",
-                    a: "Eutrofikasi",
-                    options: ["Eutrofikasi", "Bioremediasi", "Bioakumulasi", "Denitrifikasi"]
-                },
-                {
-                    q: "Rumus kecepatan rata-rata adalah?",
-                    a: "Jarak / Waktu",
-                    options: ["Jarak / Waktu", "Waktu / Jarak", "Jarak × Waktu", "Jarak + Waktu"]
-                }
-            ],
-            SULIT: [
-                {
-                    q: "Organel sel yang berfungsi sebagai tempat respirasi seluler dan menghasilkan ATP adalah?",
-                    a: "Mitokondria",
-                    options: ["Mitokondria", "Ribosom", "Badan Golgi", "Retikulum Endoplasma"]
-                },
-                {
-                    q: "Hukum Termodinamika I menyatakan bahwa?",
-                    a: "Energi tidak dapat diciptakan atau dimusnahkan",
-                    options: ["Energi tidak dapat diciptakan atau dimusnahkan", "Entropi selalu meningkat", "Suhu nol mutlak tidak tercapai", "Kalor mengalir dari dingin ke panas"]
-                },
-                {
-                    q: "Satuan mol dalam kimia menyatakan?",
-                    a: "Jumlah partikel zat (6,02 × 10²³)",
-                    options: ["Jumlah partikel zat (6,02 × 10²³)", "Massa zat dalam gram", "Volume zat dalam liter", "Konsentrasi zat"]
-                },
-                {
-                    q: "Tekanan hidrostatis pada kedalaman h dirumuskan sebagai?",
-                    a: "P = ρ × g × h",
-                    options: ["P = ρ × g × h", "P = F / A", "P = m × a", "P = V / t"]
-                },
-                {
-                    q: "Jaringan tumbuhan yang berfungsi mengangkut air dari akar ke daun adalah?",
-                    a: "Xilem",
-                    options: ["Xilem", "Floem", "Kambium", "Epidermis"]
-                },
-                {
-                    q: "Reaksi eksoterm adalah reaksi yang?",
-                    a: "Melepaskan kalor ke lingkungan",
-                    options: ["Melepaskan kalor ke lingkungan", "Menyerap kalor dari lingkungan", "Tidak melibatkan kalor", "Menghasilkan cahaya saja"]
-                },
-                {
-                    q: "Hukum Boyle dalam gas ideal menyatakan?",
-                    a: "P × V = konstan (suhu tetap)",
-                    options: ["P × V = konstan (suhu tetap)", "V / T = konstan (tekanan tetap)", "P / T = konstan (volume tetap)", "P × V = n × R × T"]
-                }
-            ]
-        },
-        IPS: {
-            MUDAH: [
-                {
-                    q: "Siapakah tokoh yang dikenal sebagai Bapak Sosiologi Dunia?",
-                    a: "Auguste Comte",
-                    options: ["Auguste Comte", "Karl Marx", "Max Weber", "Emile Durkheim"]
-                },
-                {
-                    q: "Masalah pokok ekonomi yang paling mendasar adalah?",
-                    a: "Kelangkaan",
-                    options: ["Kelangkaan", "Inflasi", "Pengangguran", "Monopoli"]
-                },
-                {
-                    q: "Ilmu yang mempelajari bentuk permukaan bumi disebut?",
-                    a: "Geomorfologi",
-                    options: ["Geomorfologi", "Klimatologi", "Oseanografi", "Kartografi"]
-                },
-                {
-                    q: "Gejala sosial yang bersifat positif contohnya?",
-                    a: "Gotong Royong",
-                    options: ["Gotong Royong", "Kemiskinan", "Kriminalitas", "Kenakalan Remaja"]
-                },
-                {
-                    q: "Letak astronomis Indonesia berada di garis?",
-                    a: "6°LU - 11°LS dan 95°BT - 141°BT",
-                    options: ["6°LU - 11°LS dan 95°BT - 141°BT", "0° - 20°LS dan 100°BT - 150°BT", "5°LU - 15°LS dan 90°BT - 145°BT", "10°LU - 5°LS dan 95°BT - 140°BT"]
-                },
-                {
-                    q: "Kebutuhan manusia yang harus dipenuhi agar dapat bertahan hidup disebut?",
-                    a: "Kebutuhan Primer",
-                    options: ["Kebutuhan Primer", "Kebutuhan Sekunder", "Kebutuhan Tersier", "Kebutuhan Mewah"]
-                },
-                {
-                    q: "Interaksi sosial yang menghasilkan kerja sama disebut?",
-                    a: "Asosiatif",
-                    options: ["Asosiatif", "Disosiatif", "Akulturasi", "Asimilasi"]
-                },
-                {
-                    q: "Lembaga sosial yang mengatur hubungan kekerabatan adalah?",
-                    a: "Keluarga",
-                    options: ["Keluarga", "Sekolah", "Pemerintah", "Agama"]
-                }
-            ],
-            SEDANG: [
-                {
-                    q: "Batuan yang terbentuk dari pembekuan magma yang keluar ke permukaan bumi disebut?",
-                    a: "Batuan Beku Luar",
-                    options: ["Batuan Beku Luar", "Batuan Beku Dalam", "Batuan Sedimen", "Batuan Metamorf"]
-                },
-                {
-                    q: "Hukum permintaan menyatakan bahwa jika harga naik maka?",
-                    a: "Jumlah barang yang diminta turun",
-                    options: ["Jumlah barang yang diminta turun", "Jumlah barang yang diminta naik", "Jumlah barang tidak berubah", "Penawaran turun"]
-                },
-                {
-                    q: "Lapisan batuan penyusun litosfer yang paling tipis adalah?",
-                    a: "Kerak Bumi",
-                    options: ["Kerak Bumi", "Mantel Bumi", "Inti Luar", "Inti Dalam"]
-                },
-                {
-                    q: "Fungsi lembaga sosial yang memberikan pedoman perilaku masyarakat disebut?",
-                    a: "Fungsi Pengaturan",
-                    options: ["Fungsi Pengaturan", "Fungsi Sosialisasi", "Fungsi Pengendalian", "Fungsi Ekonomi"]
-                },
-                {
-                    q: "Lapisan atmosfer yang mengandung ozon adalah?",
-                    a: "Stratosfer",
-                    options: ["Stratosfer", "Troposfer", "Mesosfer", "Termosfer"]
-                },
-                {
-                    q: "Faktor produksi yang bersifat asli (alamiah) adalah?",
-                    a: "Alam dan Tenaga Kerja",
-                    options: ["Alam dan Tenaga Kerja", "Modal dan Skill", "Teknologi dan Modal", "Skill dan Teknologi"]
-                },
-                {
-                    q: "Pelapukan batuan akibat perubahan suhu disebut pelapukan?",
-                    a: "Fisik/Mekanik",
-                    options: ["Fisik/Mekanik", "Kimia", "Biologis", "Organik"]
-                }
-            ],
-            SULIT: [
-                {
-                    q: "Perubahan struktur sosial yang terjadi secara cepat dan mendasar dalam masyarakat disebut?",
-                    a: "Revolusi Sosial",
-                    options: ["Revolusi Sosial", "Evolusi Sosial", "Reformasi Sosial", "Akulturasi Sosial"]
-                },
-                {
-                    q: "Indikator yang digunakan untuk mengukur tingkat pembangunan manusia adalah?",
-                    a: "IPM (Indeks Pembangunan Manusia)",
-                    options: ["IPM (Indeks Pembangunan Manusia)", "PDB", "Inflasi", "Gini Ratio"]
-                },
-                {
-                    q: "Konflik vertikal dalam masyarakat terjadi antara?",
-                    a: "Atasan dan Bawahan / Penguasa dan Rakyat",
-                    options: ["Atasan dan Bawahan / Penguasa dan Rakyat", "Sesama teman kerja", "Sesama negara", "Sesama suku"]
-                },
-                {
-                    q: "Rumus Pendapatan Nasional dengan pendekatan pengeluaran adalah?",
-                    a: "Y = C + I + G + (X - M)",
-                    options: ["Y = C + I + G + (X - M)", "Y = C + S + T", "Y = W + R + I + P", "Y = C × I × G"]
-                },
-                {
-                    q: "Teori transisi demografi tahap ketiga ditandai dengan?",
-                    a: "Kelahiran turun, kematian rendah",
-                    options: ["Kelahiran turun, kematian rendah", "Kelahiran tinggi, kematian tinggi", "Kelahiran tinggi, kematian turun", "Kelahiran rendah, kematian tinggi"]
-                },
-                {
-                    q: "Pengangguran struktural terjadi karena?",
-                    a: "Perubahan struktur ekonomi",
-                    options: ["Perubahan struktur ekonomi", "Pergantian musim", "Pencarian kerja baru", "PHK massal mendadak"]
-                },
-                {
-                    q: "Mobilitas sosial vertikal ke bawah contohnya?",
-                    a: "Pegawai diturunkan jabatannya",
-                    options: ["Pegawai diturunkan jabatannya", "Petani menjadi guru", "Karyawan mendapat promosi", "Pindah kota"]
-                }
-            ]
-        },
-        BAHASA: {
-            MUDAH: [
-                {
-                    q: "Bagian teks LHO yang berisi penjelasan detail mengenai objek yang diamati disebut?",
-                    a: "Deskripsi Bagian",
-                    options: ["Deskripsi Bagian", "Pernyataan Umum", "Simpulan", "Definisi Umum"]
-                },
-                {
-                    q: "Struktur teks anekdot yang berisi puncak masalah disebut?",
-                    a: "Krisis",
-                    options: ["Krisis", "Abstrak", "Orientasi", "Reaksi"]
-                },
-                {
-                    q: "Teks Laporan Hasil Observasi bersifat?",
-                    a: "Objektif dan faktual",
-                    options: ["Objektif dan faktual", "Subjektif dan imajinatif", "Persuasif dan emosional", "Fiktif dan khayalan"]
-                },
-                {
-                    q: "Ciri kebahasaan teks anekdot adalah menggunakan?",
-                    a: "Kalimat retoris dan sindiran",
-                    options: ["Kalimat retoris dan sindiran", "Kalimat perintah", "Kalimat seru saja", "Kata baku teknis"]
-                },
-                {
-                    q: "Teks yang berisi pengamatan sistematis terhadap suatu objek disebut?",
-                    a: "Teks LHO",
-                    options: ["Teks LHO", "Teks Anekdot", "Teks Negosiasi", "Teks Eksplanasi"]
-                },
-                {
-                    q: "Bagian awal teks LHO yang berisi definisi umum objek disebut?",
-                    a: "Pernyataan Umum / Klasifikasi",
-                    options: ["Pernyataan Umum / Klasifikasi", "Deskripsi Bagian", "Deskripsi Manfaat", "Simpulan"]
-                },
-                {
-                    q: "Tujuan teks anekdot adalah?",
-                    a: "Menghibur sekaligus menyampaikan kritik",
-                    options: ["Menghibur sekaligus menyampaikan kritik", "Memberikan instruksi", "Melaporkan hasil observasi", "Menjelaskan proses"]
-                }
-            ],
-            SEDANG: [
-                {
-                    q: "Manakah penulisan kata baku yang benar di bawah ini?",
-                    a: "Apotek",
-                    options: ["Apotek", "Apotik", "Apotik", "Appotek"]
-                },
-                {
-                    q: "Struktur teks negosiasi yang benar adalah?",
-                    a: "Orientasi - Pengajuan - Penawaran - Persetujuan - Penutup",
-                    options: ["Orientasi - Pengajuan - Penawaran - Persetujuan - Penutup", "Abstrak - Krisis - Reaksi - Koda", "Pembukaan - Isi - Penutup", "Tesis - Argumentasi - Rekomendasi"]
-                },
-                {
-                    q: "Manakah kalimat yang menggunakan kata baku?",
-                    a: "Ia bekerja dengan giat.",
-                    options: ["Ia bekerja dengan giat.", "Dia kerja dengan giat.", "Ia bekerja dengan giat sekali.", "Dia bekerja dengan semangat."]
-                },
-                {
-                    q: "Teks biografi termasuk jenis teks?",
-                    a: "Recount",
-                    options: ["Recount", "Narrative", "Procedure", "Descriptive"]
-                },
-                {
-                    q: "Kata tidak baku dari 'risiko' adalah?",
-                    a: "Resiko",
-                    options: ["Resiko", "Risiko", "Resiko", "Risico"]
-                },
-                {
-                    q: "Bagian teks biografi yang berisi latar belakang keluarga tokoh disebut?",
-                    a: "Orientasi",
-                    options: ["Orientasi", "Kejadian Penting", "Reorientasi", "Abstrak"]
-                },
-                {
-                    q: "Manakah penulisan yang benar sesuai EYD?",
-                    a: "di rumah",
-                    options: ["di rumah", "dirumah", "DiRumah", "di Rumah"]
-                }
-            ],
-            SULIT: [
-                {
-                    q: "Bagian akhir dari teks eksplanasi yang berisi komentar atau kesimpulan atas fenomena disebut?",
-                    a: "Interpretasi",
-                    options: ["Interpretasi", "Pernyataan Umum", "Deretan Penjelas", "Simpulan"]
-                },
-                {
-                    q: "Teks prosedur kompleks memiliki ciri?",
-                    a: "Langkah bertahap dan berjenjang",
-                    options: ["Langkah bertahap dan berjenjang", "Hanya satu langkah", "Tanpa urutan", "Tidak ada tujuan"]
-                },
-                {
-                    q: "Struktur teks eksplanasi yang benar adalah?",
-                    a: "Pernyataan Umum - Deretan Penjelas - Interpretasi",
-                    options: ["Pernyataan Umum - Deretan Penjelas - Interpretasi", "Orientasi - Krisis - Reaksi", "Abstrak - Krisis - Koda", "Tesis - Argumentasi - Penegasan Ulang"]
-                },
-                {
-                    q: "Unsur penilaian dalam resensi karya sastra meliputi?",
-                    a: "Kelemahan dan kelebihan karya",
-                    options: ["Kelemahan dan kelebihan karya", "Biografi penulis", "Harga buku", "Jumlah halaman"]
-                },
-                {
-                    q: "Kalimat majemuk bertingkat ditandai dengan adanya?",
-                    a: "Konjungsi subordinatif",
-                    options: ["Konjungsi subordinatif", "Konjungsi koordinatif", "Kata sambung setara", "Tanda baca koma"]
-                },
-                {
-                    q: "Dalam teks prosedur, kata yang paling dominan digunakan adalah?",
-                    a: "Kata kerja imperatif (perintah)",
-                    options: ["Kata kerja imperatif (perintah)", "Kata benda", "Kata sifat", "Kata ganti"]
-                },
-                {
-                    q: "Teks eksplanasi bertujuan untuk?",
-                    a: "Menjelaskan proses terjadinya suatu fenomena",
-                    options: ["Menjelaskan proses terjadinya suatu fenomena", "Menghibur pembaca", "Membujuk pembaca", "Menceritakan pengalaman"]
-                }
-            ]
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-    };
 
-    // ==========================================
-    // 3. MATH GENERATOR - Generator soal matematika dinamis
-    // ==========================================
-    /**
-     * Fungsi generator soal Matematika secara acak berdasarkan tingkat kesulitan.
-     * Setiap pemanggilan menghasilkan soal baru dengan parameter:
-     * - MUDAH: Penjumlahan/pengurangan, angka 1-50, soal cerita ringkas
-     * - SEDANG: Perkalian/pembagian/campuran, angka 1-12, hasil bulat
-     * - SULIT: Tanda kurung, kuadrat/akar, persamaan linear 1 variabel
-     */
-    const MathGenerator = {
-        generate(difficulty) {
-            switch (difficulty) {
-                case 'MUDAH':
-                    return this._generateEasy();
-                case 'SEDANG':
-                    return this._generateMedium();
-                case 'SULIT':
-                    return this._generateHard();
-                default:
-                    return this._generateEasy();
-            }
-        },
-
-        /**
-         * Soal MUDAH: Operasi + dan - dengan angka 1-50
-         * Termasuk soal cerita sederhana
-         */
-        _generateEasy() {
-            const questionTemplates = [
-                // Template soal cerita
-                {
-                    create: () => {
-                        const a = Math.floor(Math.random() * 40) + 10; // 10-50
-                        const b = Math.floor(Math.random() * (a - 1)) + 1; // 1 sampai a-1
-                        return {
-                            q: `Andi memiliki ${a} apel, lalu memberikan ${b} ke Budi. Berapa sisa apel Andi?`,
-                            a: a - b
-                        };
-                    }
-                },
-                // Template operasi langsung
-                {
-                    create: () => {
-                        const a = Math.floor(Math.random() * 40) + 10;
-                        const b = Math.floor(Math.random() * 30) + 5;
-                        const ops = Math.random() > 0.5 ? '+' : '-';
-                        const result = ops === '+' ? a + b : a - b;
-                        return {
-                            q: `${a} ${ops} ${b} = ?`,
-                            a: result
-                        };
-                    }
-                },
-                // Template soal cerita penambahan
-                {
-                    create: () => {
-                        const a = Math.floor(Math.random() * 30) + 5;
-                        const b = Math.floor(Math.random() * 20) + 5;
-                        return {
-                            q: `Ibu membeli ${a} telur, lalu membeli lagi ${b} telur. Berapa total telur ibu?`,
-                            a: a + b
-                        };
-                    }
-                }
-            ];
-
-            const template = questionTemplates[Math.floor(Math.random() * questionTemplates.length)];
-            const { q, a } = template.create();
-            return this._buildMultipleChoice(q, a);
-        },
-
-        /**
-         * Soal SEDANG: Perkalian, pembagian, campuran (tanpa kurung)
-         * Basis angka 1-12, hasil selalu bilangan bulat
-         */
-        _generateMedium() {
-            const templates = [
-                // Perkalian dasar
-                {
-                    create: () => {
-                        const a = Math.floor(Math.random() * 12) + 1;
-                        const b = Math.floor(Math.random() * 12) + 1;
-                        return { q: `${a} × ${b} = ?`, a: a * b };
-                    }
-                },
-                // Pembagian (hasil bulat)
-                {
-                    create: () => {
-                        const b = Math.floor(Math.random() * 11) + 2; // 2-12
-                        const result = Math.floor(Math.random() * 12) + 1;
-                        const a = b * result;
-                        return { q: `${a} ÷ ${b} = ?`, a: result };
-                    }
-                },
-                // Operasi campuran dua operasi
-                {
-                    create: () => {
-                        const a = Math.floor(Math.random() * 20) + 10;
-                        const b = Math.floor(Math.random() * 15) + 5;
-                        const c = Math.floor(Math.random() * 10) + 1;
-                        const result = a + b - c;
-                        return { q: `${a} + ${b} - ${c} = ?`, a: result };
-                    }
-                },
-                // Campuran perkalian dan penjumlahan
-                {
-                    create: () => {
-                        const a = Math.floor(Math.random() * 10) + 2;
-                        const b = Math.floor(Math.random() * 10) + 2;
-                        const c = Math.floor(Math.random() * 20) + 5;
-                        const result = a * b + c;
-                        return { q: `${a} × ${b} + ${c} = ?`, a: result };
-                    }
-                }
-            ];
-
-            const template = templates[Math.floor(Math.random() * templates.length)];
-            const { q, a } = template.create();
-            return this._buildMultipleChoice(q, a);
-        },
-
-        /**
-         * Soal SULIT: Tanda kurung, kuadrat/akar, persamaan linear 1 variabel
-         */
-        _generateHard() {
-            const templates = [
-                // Operasi dengan tanda kurung
-                {
-                    create: () => {
-                        const a = Math.floor(Math.random() * 15) + 5;
-                        const b = Math.floor(Math.random() * 10) + 1;
-                        const c = Math.floor(Math.random() * 8) + 2;
-                        const result = (a - b) * c;
-                        return { q: `(${a} - ${b}) × ${c} = ?`, a: result };
-                    }
-                },
-                // Kuadrat sederhana
-                {
-                    create: () => {
-                        const a = Math.floor(Math.random() * 12) + 2; // 2-13
-                        const b = Math.floor(Math.random() * 50) + 10;
-                        const result = a * a - b;
-                        return { q: `${a}² - ${b} = ?`, a: result };
-                    }
-                },
-                // Akar sederhana
-                {
-                    create: () => {
-                        const result = Math.floor(Math.random() * 10) + 2; // 2-11
-                        const perfectSquare = result * result;
-                        const b = Math.floor(Math.random() * 20) + 1;
-                        return { q: `√${perfectSquare} + ${b} = ?`, a: result + b };
-                    }
-                },
-                // Persamaan linear 1 variabel: ax = b
-                {
-                    create: () => {
-                        const a = Math.floor(Math.random() * 10) + 2; // 2-11
-                        const x = Math.floor(Math.random() * 12) + 1; // 1-12
-                        const b = a * x;
-                        return { q: `${a}x = ${b}. Berapakah nilai x?`, a: x };
-                    }
-                },
-                // Kombinasi kuadrat dan operasi lain
-                {
-                    create: () => {
-                        const a = Math.floor(Math.random() * 8) + 3;
-                        const b = Math.floor(Math.random() * 5) + 2;
-                        const result = a * a + b * b;
-                        return { q: `${a}² + ${b}² = ?`, a: result };
-                    }
-                }
-            ];
-
-            const template = templates[Math.floor(Math.random() * templates.length)];
-            const { q, a } = template.create();
-            return this._buildMultipleChoice(q, a);
-        },
-
-        /**
-         * Fungsi pembantu untuk membuat pilihan ganda
-         * Membuat 1 jawaban benar + 3 kecohan yang masuk akal
-         */
-        _buildMultipleChoice(question, correctAnswer) {
-            const options = [correctAnswer];
-            
-            // Generate 3 jawaban salah yang masuk akal (berdekatan dengan jawaban benar)
-            while (options.length < 4) {
-                let wrong;
-                const offset = Math.floor(Math.random() * 10) + 1;
-                
-                // Variasi kecohan: jawaban benar ± offset, atau hasil operasi salah
-                if (Math.random() > 0.5) {
-                    wrong = correctAnswer + offset;
-                } else {
-                    wrong = correctAnswer - offset;
-                }
-                
-                // Pastikan kecohan tidak sama dengan jawaban benar atau kecohan lain
-                if (wrong !== correctAnswer && !options.includes(wrong) && wrong >= 0) {
-                    options.push(wrong);
-                }
-            }
-            
-            // Acak urutan pilihan
-            const shuffledOptions = this._shuffleArray(options);
-            
-            return {
-                q: question,
-                a: correctAnswer.toString(),
-                options: shuffledOptions.map(opt => opt.toString()),
-                isMath: true
-            };
-        },
-
-        /**
-         * Fungsi Fisher-Yates shuffle untuk mengacak array
-         */
-        _shuffleArray(arr) {
-            const shuffled = [...arr];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
-    };
 
-    // ==========================================
-    // 4. GAME ENGINE - Logika gameplay utama
-    // ==========================================
-    const GameEngine = {
-        /**
-         * Inisialisasi game baru
-         */
-        startGame(category) {
-            GameState.currentScreen = 'game';
-            GameState.selectedCategory = category;
-            GameState.score = 0;
-            GameState.lives = 3;
-            GameState.combo = 0;
-            GameState.maxCombo = 0;
-            GameState.currentDifficulty = 'MUDAH';
-            GameState.questionIndex = 0;
-            GameState.usedQuestions = new Set();
-            GameState.isAnswering = false;
-            GameState.badge = null;
-
-            this.loadNextQuestion();
-        },
-
-        /**
-         * Memuat soal berikutnya berdasarkan kategori dan kesulitan saat ini
-         */
-        loadNextQuestion() {
-            const category = GameState.selectedCategory;
-            const difficulty = this.getDifficulty();
-            
-            // Update difficulty state
-            GameState.currentDifficulty = difficulty;
-            
-            let question;
-            
-            // Untuk Matematika, gunakan generator
-            if (category === 'MATEMATIKA') {
-                question = MathGenerator.generate(difficulty);
-            } else {
-                // Untuk IPA/IPS/Bahasa, ambil dari bank soal
-                const bank = QuestionBank[category][difficulty];
-                
-                // Reset used questions jika semua soal sudah terpakai
-                if (GameState.usedQuestions.size >= bank.length) {
-                    GameState.usedQuestions.clear();
-                }
-                
-                // Pilih soal acak yang belum digunakan
-                let availableIndices = [];
-                for (let i = 0; i < bank.length; i++) {
-                    if (!GameState.usedQuestions.has(i)) {
-                        availableIndices.push(i);
-                    }
-                }
-                
-                const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-                GameState.usedQuestions.add(randomIndex);
-                
-                // Clone soal untuk menghindari modifikasi
-                question = { ...bank[randomIndex] };
-            }
-            
-            GameState.currentQuestion = question;
-            GameState.isAnswering = false;
-            
-            // Set timer berdasarkan kesulitan
-            this.setTimerForDifficulty(difficulty);
-        },
-
-        /**
-         * Menentukan tingkat kesulitan berdasarkan skor saat ini
-         */
-        getDifficulty() {
-            const score = GameState.score;
-            if (score > 120) return 'SULIT';
-            if (score > 50) return 'SEDANG';
-            return 'MUDAH';
-        },
-
-        /**
-         * Set waktu timer berdasarkan tingkat kesulitan
-         * MUDAH: 15s, SEDANG: 12s (Matematika 10s), SULIT: 8s (Matematika 7s)
-         */
-        setTimerForDifficulty(difficulty) {
-            const category = GameState.selectedCategory;
-            const isMath = category === 'MATEMATIKA';
-            
-            if (difficulty === 'MUDAH') {
-                GameState.timer = 15;
-            } else if (difficulty === 'SEDANG') {
-                GameState.timer = isMath ? 10 : 12;
-            } else {
-                GameState.timer = isMath ? 7 : 8;
-            }
-            
-            this.startTimer();
-        },
-
-        /**
-         * Memulai countdown timer
-         */
-        startTimer() {
-            if (GameState.timerInterval) clearInterval(GameState.timerInterval);
-            
-            GameState.timerInterval = setInterval(() => {
-                GameState.timer--;
-                
-                // Update UI timer
-                UIManager.updateTimerDisplay();
-                
-                // Waktu habis
-                if (GameState.timer <= 0) {
-                    clearInterval(GameState.timerInterval);
-                    this.handleWrongAnswer(true); // true = timeout
-                }
-            }, 1000);
-        },
-
-        /**
-         * Menangani jawaban benar
-         * - Skor +10
-         * - Bonus waktu sisa (+1 per detik)
-         * - Combo streak naik
-         * - Lanjut soal berikutnya
-         */
-        handleCorrectAnswer() {
-            if (GameState.isAnswering) return;
-            GameState.isAnswering = true;
-            
-            if (GameState.timerInterval) clearInterval(GameState.timerInterval);
-            
-            // Hitung poin: 10 poin dasar + bonus waktu sisa
-            const timeBonus = Math.max(0, GameState.timer);
-            const pointsEarned = 10 + timeBonus;
-            GameState.score += pointsEarned;
-            
-            // Update combo
-            GameState.combo++;
-            if (GameState.combo > GameState.maxCombo) {
-                GameState.maxCombo = GameState.combo;
-            }
-            
-            // Efek visual benar
-            UIManager.showCorrectEffect(pointsEarned);
-            
-            // Cek milestone sulit (>120)
-            if (GameState.score > 120 && GameState.currentDifficulty !== 'SULIT') {
-                setTimeout(() => {
-                    UIManager.showCelebration();
-                }, 500);
-            }
-            
-            // Lanjut soal berikutnya setelah delay
-            setTimeout(() => {
-                this.loadNextQuestion();
-                UIManager.renderGameScreen();
-            }, 1200);
-        },
-
-        /**
-         * Menangani jawaban salah / waktu habis
-         * - Nyawa berkurang 1
-         * - Combo reset ke 0
-         * - Efek screen shake + flash merah
-         */
-        handleWrongAnswer(isTimeout = false) {
-            if (GameState.isAnswering) return;
-            GameState.isAnswering = true;
-            
-            if (GameState.timerInterval) clearInterval(GameState.timerInterval);
-            
-            GameState.lives--;
-            GameState.combo = 0;
-            
-            // Efek visual salah
-            UIManager.showWrongEffect(isTimeout ? 'Waktu Habis!' : 'Salah!');
-            
-            // Cek game over
-            if (GameState.lives <= 0) {
-                setTimeout(() => {
-                    this.endGame();
-                }, 1500);
-            } else {
-                // Lanjut soal berikutnya
-                setTimeout(() => {
-                    this.loadNextQuestion();
-                    UIManager.renderGameScreen();
-                }, 1500);
-            }
-        },
-
-        /**
-         * Mengakhiri game dan menampilkan layar Game Over
-         */
-        endGame() {
-            GameState.currentScreen = 'gameover';
-            
-            // Tentukan badge berdasarkan skor
-            if (GameState.score >= 200) {
-                GameState.badge = { name: '🏆 Mega Scholar', tier: 'gold', desc: 'Luar Biasa! Kamu menguasai materi dengan sempurna!' };
-            } else if (GameState.score >= 150) {
-                GameState.badge = { name: '🥇 Scholar Elite', tier: 'silver', desc: 'Hebat! Pengetahuanmu sangat luas!' };
-            } else if (GameState.score >= 80) {
-                GameState.badge = { name: '🥈 Scholar Pro', tier: 'bronze', desc: 'Bagus! Terus tingkatkan belajarmu!' };
-            } else {
-                GameState.badge = { name: '📚 Scholar Pemula', tier: 'bronze', desc: 'Jangan menyerah! Terus belajar ya!' };
-            }
-            
-            UIManager.renderGameOverScreen();
-        },
-
-        /**
-         * Restart game
-         */
-        restartGame() {
-            this.startGame(GameState.selectedCategory);
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
         }
-    };
 
-    // ==========================================
-    // 5. UI MANAGER - Render dan animasi UI
-    // ==========================================
-    const UIManager = {
-        app: document.getElementById('app'),
-
-        /**
-         * Render layar utama (Menu)
-         */
-        renderMenuScreen() {
-            this.app.innerHTML = `
-                <div class="fade-in w-full max-w-4xl mx-auto text-center px-4 py-8">
-                    <!-- Logo / Title -->
-                    <div class="mb-8">
-                        <h1 class="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-yellow-400 via-pink-500 to-cyan-400 bg-clip-text text-transparent mb-3 leading-tight">
-                            Nusantara Mega Scholar
-                        </h1>
-                        <p class="text-lg md:text-xl text-purple-300 font-medium">The Ultimate High School Quest</p>
-                        <div class="mt-4 inline-block px-6 py-2 bg-white/10 backdrop-blur-sm rounded-full text-sm text-gray-300">
-                            📚 Pilih mata pelajaran untuk memulai petualangan belajar!
-                        </div>
-                    </div>
-
-                    <!-- Category Cards Grid -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-4xl mx-auto">
-                        <!-- IPA Card -->
-                        <div onclick="GameEngine.startGame('IPA')" 
-                             class="category-card cursor-pointer bg-gradient-to-br from-green-500 to-emerald-700 rounded-2xl p-6 shadow-lg border border-green-400/30 hover:border-green-300/60">
-                            <div class="text-5xl mb-3">🔬</div>
-                            <h3 class="text-xl font-bold mb-2">IPA</h3>
-                            <p class="text-green-100 text-sm">Fisika, Kimia, Biologi</p>
-                        </div>
-
-                        <!-- IPS Card -->
-                        <div onclick="GameEngine.startGame('IPS')" 
-                             class="category-card cursor-pointer bg-gradient-to-br from-blue-500 to-indigo-700 rounded-2xl p-6 shadow-lg border border-blue-400/30 hover:border-blue-300/60">
-                            <div class="text-5xl mb-3">🌍</div>
-                            <h3 class="text-xl font-bold mb-2">IPS</h3>
-                            <p class="text-blue-100 text-sm">Sosiologi, Geografi, Ekonomi</p>
-                        </div>
-
-                        <!-- Bahasa Card -->
-                        <div onclick="GameEngine.startGame('BAHASA')" 
-                             class="category-card cursor-pointer bg-gradient-to-br from-purple-500 to-pink-700 rounded-2xl p-6 shadow-lg border border-purple-400/30 hover:border-purple-300/60">
-                            <div class="text-5xl mb-3">📝</div>
-                            <h3 class="text-xl font-bold mb-2">Bahasa Indonesia</h3>
-                            <p class="text-purple-100 text-sm">Teks, Tata Bahasa, Resensi</p>
-                        </div>
-
-                        <!-- Matematika Card -->
-                        <div onclick="GameEngine.startGame('MATEMATIKA')" 
-                             class="category-card cursor-pointer bg-gradient-to-br from-orange-500 to-red-700 rounded-2xl p-6 shadow-lg border border-orange-400/30 hover:border-orange-300/60">
-                            <div class="text-5xl mb-3">🧮</div>
-                            <h3 class="text-xl font-bold mb-2">Matematika</h3>
-                            <p class="text-orange-100 text-sm">Aljabar, Logika, Operasi</p>
-                        </div>
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="mt-12 text-gray-400 text-sm">
-                        <p>💡 Tips: Jawaban cepat = bonus waktu! Combo beruntun = skor lebih tinggi!</p>
-                    </div>
-                </div>
-            `;
-        },
-
-        /**
-         * Render layar permainan
-         */
-        renderGameScreen() {
-            const category = GameState.selectedCategory;
-            const difficulty = GameState.currentDifficulty;
-            const question = GameState.currentQuestion;
-            
-            // Warna tema berdasarkan kesulitan
-            const diffColors = {
-                'MUDAH': { bg: 'from-green-600 to-emerald-800', border: 'border-green-400/40', text: 'text-green-400', badge: 'bg-green-500' },
-                'SEDANG': { bg: 'from-orange-600 to-amber-800', border: 'border-orange-400/40', text: 'text-orange-400', badge: 'bg-orange-500' },
-                'SULIT': { bg: 'from-red-600 to-rose-800', border: 'border-red-400/40', text: 'text-red-400', badge: 'bg-red-500' }
-            };
-            
-            const colors = diffColors[difficulty];
-            const timerPercent = (GameState.timer / this.getMaxTimer(difficulty)) * 100;
-            const timerColor = GameState.timer <= 3 ? 'bg-red-500' : GameState.timer <= 6 ? 'bg-yellow-500' : 'bg-green-500';
-            
-            this.app.innerHTML = `
-                <div id="game-container" class="fade-in w-full max-w-2xl mx-auto px-4 py-4">
-                    <!-- Header: Score, Lives, Combo, Difficulty -->
-                    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-4 mb-4 border border-white/20">
-                        <div class="flex flex-wrap items-center justify-between gap-3">
-                            <!-- Score -->
-                            <div class="flex items-center gap-2">
-                                <span class="text-2xl">⭐</span>
-                                <div>
-                                    <div class="text-xs text-gray-400">SKOR</div>
-                                    <div id="score-display" class="text-2xl font-bold">${GameState.score}</div>
-                                </div>
-                            </div>
-
-                            <!-- Difficulty Badge -->
-                            <div class="${colors.badge} px-4 py-2 rounded-full text-sm font-bold shadow-lg animate-pulse">
-                                ${difficulty}
-                            </div>
-
-                            <!-- Lives -->
-                            <div class="flex items-center gap-2">
-                                <span class="text-2xl">❤️</span>
-                                <div class="flex gap-1" id="lives-display">
-                                    ${this.renderLives(GameState.lives)}
-                                </div>
-                            </div>
-
-                            <!-- Combo -->
-                            <div class="flex items-center gap-2">
-                                <span class="text-2xl">🔥</span>
-                                <div>
-                                    <div class="text-xs text-gray-400">COMBO</div>
-                                    <div id="combo-display" class="text-2xl font-bold ${GameState.combo >= 3 ? 'text-yellow-400' : 'text-white'}">${GameState.combo}x</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Timer Bar -->
-                        <div class="mt-3 w-full bg-gray-700 rounded-full h-3 overflow-hidden">
-                            <div id="timer-bar" class="timer-bar ${timerColor} h-full rounded-full" style="width: ${timerPercent}%"></div>
-                        </div>
-                        <div class="text-center mt-1">
-                            <span id="timer-display" class="text-sm font-mono font-bold ${GameState.timer <= 3 ? 'text-red-400 timer-pulse' : 'text-gray-300'}">⏱️ ${GameState.timer}s</span>
-                        </div>
-                    </div>
-
-                    <!-- Question Card -->
-                    <div id="question-card" class="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-4 border ${colors.border}">
-                        <div class="text-center mb-4">
-                            <span class="text-xs text-gray-400 uppercase tracking-wider">${category} • ${difficulty}</span>
-                        </div>
-                        <h2 id="question-text" class="text-xl md:text-2xl font-semibold text-center leading-relaxed">
-                            ${question.q}
-                        </h2>
-                    </div>
-
-                    <!-- Answer Buttons -->
-                    <div id="answers-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        ${question.options.map((opt, idx) => `
-                            <button onclick="GameEngine.handleCorrectAnswer(); this.classList.add('correct-flash');" 
-                                    data-answer="${opt}" 
-                                    class="answer-btn bg-white/10 hover:bg-white/20 border-2 border-white/20 rounded-xl p-4 text-left transition-all duration-200 font-medium text-base md:text-lg
-                                           hover:scale-[1.02] active:scale-95">
-                                <span class="inline-block w-8 h-8 bg-white/20 rounded-full text-center leading-8 text-sm font-bold mr-3">${String.fromCharCode(65 + idx)}</span>
-                                ${opt}
-                            </button>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-
-            // Attach click handlers with proper answer checking
-            this.attachAnswerHandlers();
-        },
-
-        /**
-         * Attach event handlers untuk tombol jawaban
-         * Membandingkan jawaban yang dipilih dengan jawaban benar
-         */
-        attachAnswerHandlers() {
-            const buttons = document.querySelectorAll('.answer-btn');
-            const correctAnswer = GameState.currentQuestion.a;
-            
-            buttons.forEach(btn => {
-                btn.onclick = () => {
-                    const selectedAnswer = btn.dataset.answer;
-                    
-                    if (selectedAnswer === correctAnswer) {
-                        // Jawaban benar
-                        btn.classList.add('bg-green-500/30', 'border-green-400');
-                        GameEngine.handleCorrectAnswer();
-                    } else {
-                        // Jawaban salah
-                        btn.classList.add('bg-red-500/30', 'border-red-400', 'wrong-flash');
-                        GameEngine.handleWrongAnswer(false);
-                    }
-                };
-            });
-        },
-
-        /**
-         * Render lives (hati)
-         */
-        renderLives(lives) {
-            let html = '';
-            for (let i = 0; i < 3; i++) {
-                html += i < lives ? '<span class="text-2xl">❤️</span>' : '<span class="text-2xl opacity-30">🖤</span>';
-            }
-            return html;
-        },
-
-        /**
-         * Mendapatkan max timer untuk animasi bar
-         */
-        getMaxTimer(difficulty) {
-            const isMath = GameState.selectedCategory === 'MATEMATIKA';
-            if (difficulty === 'MUDAH') return 15;
-            if (difficulty === 'SEDANG') return isMath ? 10 : 12;
-            return isMath ? 7 : 8;
-        },
-
-        /**
-         * Update tampilan timer di UI
-         */
-        updateTimerDisplay() {
-            const timerDisplay = document.getElementById('timer-display');
-            const timerBar = document.getElementById('timer-bar');
-            
-            if (timerDisplay) {
-                timerDisplay.textContent = `⏱️ ${GameState.timer}s`;
-                if (GameState.timer <= 3) {
-                    timerDisplay.classList.add('text-red-400', 'timer-pulse');
-                }
-            }
-            
-            if (timerBar) {
-                const maxTimer = this.getMaxTimer(GameState.currentDifficulty);
-                const percent = (GameState.timer / maxTimer) * 100;
-                timerBar.style.width = `${percent}%`;
-                
-                if (GameState.timer <= 3) {
-                    timerBar.className = 'timer-bar bg-red-500 h-full rounded-full';
-                } else if (GameState.timer <= 6) {
-                    timerBar.className = 'timer-bar bg-yellow-500 h-full rounded-full';
-                } else {
-                    timerBar.className = 'timer-bar bg-green-500 h-full rounded-full';
-                }
-            }
-        },
-
-        /**
-         * Efek visual jawaban benar
-         */
-        showCorrectEffect(points) {
-            const container = document.getElementById('game-container');
-            if (container) {
-                container.classList.add('correct-flash');
-                setTimeout(() => container.classList.remove('correct-flash'), 600);
-            }
-
-            // Update score display dengan animasi
-            const scoreEl = document.getElementById('score-display');
-            if (scoreEl) {
-                scoreEl.textContent = GameState.score;
-                scoreEl.classList.add('text-yellow-400');
-                setTimeout(() => scoreEl.classList.remove('text-yellow-400'), 500);
-            }
-
-            // Update combo display
-            const comboEl = document.getElementById('combo-display');
-            if (comboEl) {
-                comboEl.textContent = `${GameState.combo}x`;
-                if (GameState.combo >= 3) {
-                    comboEl.classList.add('text-yellow-400');
-                }
-            }
-
-            // Tampilkan feedback poin
-            this.showFloatingText(`+${points} poin!`, 'text-green-400');
-        },
-
-        /**
-         * Efek visual jawaban salah
-         */
-        showWrongEffect(message) {
-            const container = document.getElementById('game-container');
-            if (container) {
-                container.classList.add('screen-shake', 'wrong-flash');
-                setTimeout(() => {
-                    container.classList.remove('screen-shake', 'wrong-flash');
-                }, 600);
-            }
-
-            // Update lives display
-            const livesEl = document.getElementById('lives-display');
-            if (livesEl) {
-                livesEl.innerHTML = this.renderLives(GameState.lives);
-            }
-
-            // Reset combo
-            const comboEl = document.getElementById('combo-display');
-            if (comboEl) {
-                comboEl.textContent = '0x';
-                comboEl.classList.remove('text-yellow-400');
-            }
-
-            this.showFloatingText(message, 'text-red-400');
-        },
-
-        /**
-         * Tampilkan teks melayang (floating text)
-         */
-        showFloatingText(text, colorClass) {
-            const floatEl = document.createElement('div');
-            floatEl.className = `fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-2xl font-bold ${colorClass} z-50 pointer-events-none`;
-            floatEl.textContent = text;
-            floatEl.style.animation = 'fadeIn 0.3s ease-out';
-            document.body.appendChild(floatEl);
-            
-            setTimeout(() => {
-                floatEl.style.transition = 'all 0.8s ease-out';
-                floatEl.style.transform = 'translate(-50%, -150%)';
-                floatEl.style.opacity = '0';
-                setTimeout(() => floatEl.remove(), 800);
-            }, 200);
-        },
-
-        /**
-         * Animasi confetti untuk milestone sulit
-         */
-        showCelebration() {
-            const colors = ['#FFD700', '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F'];
-            
-            for (let i = 0; i < 50; i++) {
-                setTimeout(() => {
-                    const confetti = document.createElement('div');
-                    confetti.className = 'confetti-piece';
-                    confetti.style.left = `${Math.random() * 100}vw`;
-                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-                    confetti.style.width = `${Math.random() * 10 + 6}px`;
-                    confetti.style.height = `${Math.random() * 10 + 6}px`;
-                    document.body.appendChild(confetti);
-                    
-                    setTimeout(() => confetti.remove(), 3000);
-                }, i * 30);
-            }
-
-            // Tampilkan teks selebrasi
-            const celebEl = document.createElement('div');
-            celebEl.className = 'fixed inset-0 flex items-center justify-center z-40 pointer-events-none';
-            celebEl.innerHTML = `
-                <div class="celebrate-blink bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500 px-8 py-4 rounded-2xl shadow-2xl text-center">
-                    <div class="text-3xl md:text-4xl font-extrabold text-white">
-                        🎉 LUAR BIASA! 🎉<br>
-                        <span class="text-xl md:text-2xl">KAMU MAKIN PINTAR!</span>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(celebEl);
-            
-            setTimeout(() => celebEl.remove(), 2500);
-        },
-
-        /**
-         * Render layar Game Over
-         */
-        renderGameOverScreen() {
-            const badge = GameState.badge;
-            const badgeClasses = {
-                'gold': 'badge-gold',
-                'silver': 'badge-silver',
-                'bronze': 'badge-bronze'
-            };
-
-            this.app.innerHTML = `
-                <div class="fade-in w-full max-w-lg mx-auto px-4 py-8 text-center">
-                    <!-- Game Over Title -->
-                    <div class="mb-6">
-                        <h1 class="text-4xl md:text-5xl font-extrabold text-red-400 mb-2">GAME OVER</h1>
-                        <p class="text-gray-400">Permainan selesai!</p>
-                    </div>
-
-                    <!-- Badge Display -->
-                    <div class="mb-6">
-                        <div class="${badgeClasses[badge.tier]} inline-block px-8 py-4 rounded-2xl shadow-2xl mb-4">
-                            <div class="text-6xl mb-2">${badge.name.split(' ')[0]}</div>
-                            <h2 class="text-2xl font-bold text-white">${badge.name.substring(badge.name.indexOf(' ') + 1)}</h2>
-                        </div>
-                        <p class="text-gray-300 text-sm">${badge.desc}</p>
-                    </div>
-
-                    <!-- Stats Card -->
-                    <div class="bg-white/10 backdrop-blur-md rounded-2xl p-6 mb-6 border border-white/20">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <div class="text-3xl font-bold text-yellow-400">${GameState.score}</div>
-                                <div class="text-sm text-gray-400">Total Skor</div>
-                            </div>
-                            <div>
-                                <div class="text-3xl font-bold text-orange-400">${GameState.maxCombo}x</div>
-                                <div class="text-sm text-gray-400">Combo Terbaik</div>
-                            </div>
-                            <div>
-                                <div class="text-3xl font-bold text-purple-400">${GameState.selectedCategory}</div>
-                                <div class="text-sm text-gray-400">Kategori</div>
-                            </div>
-                            <div>
-                                <div class="text-3xl font-bold text-green-400">${GameState.currentDifficulty}</div>
-                                <div class="text-sm text-gray-400">Level Akhir</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                        <button onclick="GameEngine.restartGame()" 
-                                class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-8 py-3 rounded-xl font-bold text-lg shadow-lg transition-all duration-200 hover:scale-105 active:scale-95">
-                            🔄 Main Lagi
-                        </button>
-                        <button onclick="GameState.currentScreen = 'menu'; UIManager.renderMenuScreen();" 
-                                class="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 px-8 py-3 rounded-xl font-bold text-lg shadow-lg transition-all duration-200 hover:scale-105 active:scale-95">
-                            🏠 Menu Utama
-                        </button>
-                    </div>
-                </div>
-            `;
+        @keyframes flashGreen {
+            0% { box-shadow: 0 0 0 0 rgba(0, 200, 83, 0.7); }
+            50% { box-shadow: 0 0 30px 10px rgba(0, 200, 83, 0.5); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 200, 83, 0); }
         }
-    };
 
-    // ==========================================
-    // 6. INISIALISASI GAME
-    // ==========================================
-    // Render menu utama saat halaman dimuat
-    UIManager.renderMenuScreen();
-    </script>
-</body>
-</html>
-```
+        @keyframes flashRed {
+            0% { background-color: rgba(244, 67, 54, 0.3); }
+            100% { background-color: transparent; }
+        }
+
+        @keyframes confettiFall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        @keyframes celebrateBlink {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes timerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .shake-anim {
+            animation: shake 0.5s ease;
+        }
+
+        .flash-green {
+            animation: flashGreen 0.6s ease;
+        }
+
+        .flash-red {
+            animation: flashRed 0.4s ease;
+        }
+
+        .celebrate-text {
+            animation: celebrateBlink 0.5s ease infinite;
+        }
+
+        /* ============================================
+           MAIN MENU SCREEN
+           ============================================ */
+        .main-menu {
+            text-align: center;
+            padding-top: 40px;
+        }
+
+        .game-logo {
+            margin-bottom: 10px;
+        }
+
+        .game-logo h1 {
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent), var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+            margin-bottom: 5px;
+        }
+
+        .game-logo .subtitle {
+            font-size: clamp(0.8rem, 2.5vw, 1.1rem);
+            color: var(--text-muted);
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .mascot-container {
+            margin: 20px auto;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-top: 30px;
+            padding: 0 10px;
+        }
+
+        @media (max-width: 480px) {
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .category-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 24px 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            border-radius: var(--radius) var(--radius) 0 0;
+        }
+
+        .category-card.ipa::before { background: linear-gradient(90deg, #00C853, #69F0AE); }
+        .category-card.ips::before { background: linear-gradient(90deg, #FF9800, #FFB74D); }
+        .category-card.bindo::before { background: linear-gradient(90deg, #2196F3, #64B5F6); }
+        .category-card.math::before { background: linear-gradient(90deg, #9C27B0, #CE93D8); }
+
+        .category-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .category-card:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        .category-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .category-card h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .category-card p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* ============================================
+           GAME SCREEN
+           ============================================ */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .game-stats {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .stat-badge {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 50px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-badge .icon {
+            font-size: 1rem;
+        }
+
+        .difficulty-indicator {
+            padding: 8px 16px;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: var(--transition);
+        }
+
+        .difficulty-indicator.easy {
+            background: rgba(0, 200, 83, 0.2);
+            color: var(--difficulty-easy);
+            border: 1px solid rgba(0, 200, 83, 0.3);
+        }
+
+        .difficulty-indicator.medium {
+            background: rgba(255, 152, 0, 0.2);
+            color: var(--difficulty-medium);
+            border: 1px solid rgba(255, 152, 0, 0.3);
+        }
+
+        .difficulty-indicator.hard {
+            background: rgba(244, 67, 54, 0.2);
+            color: var(--difficulty-hard);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            animation: pulse 1s ease infinite;
+        }
+
+        /* Timer bar */
+        .timer-container {
+            margin-bottom: 20px;
+        }
+
+        .timer-bar-bg {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .timer-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.1s linear, background-color 0.3s ease;
+            background: var(--success);
+        }
+
+        .timer-bar-fill.warning {
+            background: var(--warning);
+        }
+
+        .timer-bar-fill.danger {
+            background: var(--danger);
+            animation: timerPulse 0.5s ease infinite;
+        }
+
+        .timer-text {
+            text-align: center;
+            margin-top: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        /* Question card */
+        .question-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
+            padding: 28px 24px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            animation: slideInRight 0.4s ease;
+        }
+
+        .question-category-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            background: rgba(108, 99, 255, 0.2);
+            color: var(--primary);
+            border: 1px solid rgba(108, 99, 255, 0.3);
+        }
+
+        .question-text {
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            font-weight: 500;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .question-math {
+            font-size: clamp(1.3rem, 4vw, 1.8rem);
+            font-weight: 700;
+            color: var(--accent);
+            text-align: center;
+            padding: 16px;
+            background: rgba(0, 210, 255, 0.08);
+            border-radius: var(--radius-sm);
+            margin: 12px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        /* Answer options */
+        .answers-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .answers-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .answer-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            padding: 16px 20px;
+            color: var(--text-light);
+            font-family: 'Poppins', sans-serif;
+            font-size: clamp(0.85rem, 2.5vw, 1rem);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .answer-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background: rgba(108, 99, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .answer-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .answer-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .answer-btn.correct {
+            border-color: var(--success) !important;
+            background: rgba(0, 200, 83, 0.2) !important;
+            animation: flashGreen 0.6s ease;
+        }
+
+        .answer-btn.wrong {
+            border-color: var(--danger) !important;
+            background: rgba(244, 67, 54, 0.2) !important;
+        }
+
+        .answer-btn .option-label {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            line-height: 28px;
+            text-align: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            font-weight: 700;
+            font-size: 0.8rem;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .answer-btn.correct .option-label {
+            background: var(--success);
+        }
+
+        .answer-btn.wrong .option-label {
+            background: var(--danger);
+        }
+
+        /* Combo display */
+        .combo-display {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--warning);
+            text-shadow: 0 0 20px rgba(255, 152, 0, 0.5);
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .combo-display.show {
+            opacity: 1;
+            animation: pulse 0.5s ease;
+        }
+
+        /* Celebration overlay */
+        .celebration-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .celebration-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .celebration-content {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .celebration-content h2 {
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            background: linear-gradient(135deg, #FFD700, #FFA500, #FF6347);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .celebration-content p {
+            font-size: 1.2rem;
+            color: var(--text-muted);
+        }
+
+        /* Confetti */
+        .confetti-container {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 150;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            animation: confettiFall 3s ease-in forwards;
+        }
+
+        /* ============================================
+           GAME OVER SCREEN
+           ============================================ */
+        .game-over {
+            text-align: center;
+            padding-top: 40px;
+        }
+
+        .game-over h2 {
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .final-score {
+            font-size: clamp(3rem, 10vw, 5rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 20px 0;
+        }
+
+        .badge-container {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .badge {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            padding: 12px 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .badge .badge-icon {
+            font-size: 2rem;
+            margin-bottom: 4px;
+        }
+
+        .badge .badge-name {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .badge.earned {
+            border-color: var(--warning);
+            background: rgba(255, 152, 0, 0.15);
+        }
+
+        .badge.earned .badge-name {
+            color: var(--warning);
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 24px 0;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-card .stat-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .stat-card .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border: none;
+            border-radius: 50px;
+            padding: 16px 40px;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 10px;
+        }
+
+        .btn-restart:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(108, 99, 255, 0.4);
+        }
+
+        .btn-restart:active {
+            transform: translateY(-1px);
+        }
+
+        /* Flash overlay for wrong answers */
+        .flash-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.1s ease;
+        }
+
+        .flash-overlay.red {
+            background: rgba(244, 67, 54, 0.2);
+            opacity: 1;
+        }
+
+        /* ============================================
+           UTILITY CLASSES
+           ============================================ */
+        .text-center { text-al
