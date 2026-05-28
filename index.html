@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -685,4 +686,1598 @@
         /* ============================================
            UTILITY CLASSES
            ============================================ */
-        .text-center { text-al
+        .text-center { text-align: center; }
+        .mt-10 { margin-top: 10px; }
+        .mt-20 { margin-top: 20px; }
+        .mb-10 { margin-bottom: 10px; }
+        .mb-20 { margin-bottom: 20px; }
+
+        /* Score popup */
+        .score-popup {
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--success);
+            pointer-events: none;
+            z-index: 100;
+            animation: scoreFloat 1s ease forwards;
+        }
+
+        @keyframes scoreFloat {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-50px) scale(1.5); }
+        }
+
+        /* High score display */
+        .highscore-display {
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 50px;
+            display: inline-block;
+        }
+
+        .highscore-display span {
+            color: #FFD700;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <!-- Flash overlay for wrong answer effects -->
+    <div class="flash-overlay" id="flashOverlay"></div>
+
+    <!-- Combo display -->
+    <div class="combo-display" id="comboDisplay"></div>
+
+    <!-- Confetti container -->
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <!-- Celebration overlay for milestone -->
+    <div class="celebration-overlay" id="celebrationOverlay">
+        <div class="celebration-content">
+            <h2 class="celebrate-text">🎉 LUAR BIASA! 🎉</h2>
+            <p>KAMU MAKIN PINTAR!</p>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- ============================================
+             SCREEN 1: MAIN MENU
+             ============================================ -->
+        <div class="screen active" id="mainMenu">
+            <div class="main-menu">
+                <div class="game-logo">
+                    <h1>Nusantara Mega Scholar</h1>
+                    <div class="subtitle">The Ultimate High School Quest</div>
+                </div>
+
+                <div class="mascot-container">
+                    <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="60" cy="60" r="55" fill="url(#mascotGrad)" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                        <circle cx="45" cy="50" r="8" fill="white"/>
+                        <circle cx="75" cy="50" r="8" fill="white"/>
+                        <circle cx="45" cy="50" r="4" fill="#302b63"/>
+                        <circle cx="75" cy="50" r="4" fill="#302b63"/>
+                        <path d="M40 70 Q60 85 80 70" stroke="white" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        <path d="M30 35 L35 25 L40 35" stroke="#FFD700" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        <path d="M80 35 L85 25 L90 35" stroke="#FFD700" stroke-width="3" stroke-linecap="round" fill="none"/>
+                        <defs>
+                            <linearGradient id="mascotGrad" x1="0" y1="0" x2="120" y2="120">
+                                <stop offset="0%" stop-color="#6C63FF"/>
+                                <stop offset="100%" stop-color="#00D2FF"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+
+                <p style="color: var(--text-muted); margin-bottom: 10px; font-size: 0.9rem;">Pilih Mata Pelajaran:</p>
+
+                <div class="category-grid">
+                    <div class="category-card ipa" onclick="game.startCategory('ipa')">
+                        <div class="category-icon">🔬</div>
+                        <h3>IPA</h3>
+                        <p>Fisika, Kimia, Biologi</p>
+                    </div>
+                    <div class="category-card ips" onclick="game.startCategory('ips')">
+                        <div class="category-icon">🌍</div>
+                        <h3>IPS</h3>
+                        <p>Sosiologi, Geografi, Ekonomi</p>
+                    </div>
+                    <div class="category-card bindo" onclick="game.startCategory('bindo')">
+                        <div class="category-icon">📖</div>
+                        <h3>Bahasa Indonesia</h3>
+                        <p>Teks, Tata Bahasa, Resensi</p>
+                    </div>
+                    <div class="category-card math" onclick="game.startCategory('math')">
+                        <div class="category-icon">🧮</div>
+                        <h3>Matematika</h3>
+                        <p>Aljabar, Operasi, Logika</p>
+                    </div>
+                </div>
+
+                <div class="highscore-display mt-20" id="highscoreMenu">
+                    🏆 Skor Tertinggi: <span id="globalHighscore">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================
+             SCREEN 2: GAME PLAY
+             ============================================ -->
+        <div class="screen" id="gameScreen">
+            <div class="game-header">
+                <div class="game-stats">
+                    <div class="stat-badge">
+                        <span class="icon">⭐</span>
+                        <span id="scoreDisplay">0</span>
+                    </div>
+                    <div class="stat-badge">
+                        <span class="icon">❤️</span>
+                        <span id="livesDisplay">3</span>
+                    </div>
+                    <div class="stat-badge">
+                        <span class="icon">🔥</span>
+                        <span id="comboDisplayStat">0</span>
+                    </div>
+                </div>
+                <div class="difficulty-indicator easy" id="difficultyIndicator">
+                    MUDAH
+                </div>
+            </div>
+
+            <div class="timer-container">
+                <div class="timer-bar-bg">
+                    <div class="timer-bar-fill" id="timerBar"></div>
+                </div>
+                <div class="timer-text">Waktu: <span id="timerText">15</span>s</div>
+            </div>
+
+            <div class="question-card" id="questionCard">
+                <div class="question-category-tag" id="questionTag">IPA - Fisika</div>
+                <div class="question-text" id="questionText">Loading...</div>
+                <div class="question-math" id="questionMath" style="display:none;"></div>
+            </div>
+
+            <div class="answers-grid" id="answersGrid">
+                <button class="answer-btn" onclick="game.selectAnswer(0)">
+                    <span class="option-label">A</span>
+                    <span class="option-text">Pilihan A</span>
+                </button>
+                <button class="answer-btn" onclick="game.selectAnswer(1)">
+                    <span class="option-label">B</span>
+                    <span class="option-text">Pilihan B</span>
+                </button>
+                <button class="answer-btn" onclick="game.selectAnswer(2)">
+                    <span class="option-label">C</span>
+                    <span class="option-text">Pilihan C</span>
+                </button>
+                <button class="answer-btn" onclick="game.selectAnswer(3)">
+                    <span class="option-label">D</span>
+                    <span class="option-text">Pilihan D</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ============================================
+             SCREEN 3: GAME OVER
+             ============================================ -->
+        <div class="screen" id="gameOverScreen">
+            <div class="game-over">
+                <h2>🎮 Game Over</h2>
+                <p style="color: var(--text-muted);">Permainan Selesai!</p>
+
+                <div class="final-score" id="finalScore">0</div>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Skor Akhir</p>
+
+                <div class="badge-container" id="badgeContainer">
+                    <!-- Badges will be dynamically generated -->
+                </div>
+
+                <div class="stats-summary">
+                    <div class="stat-card">
+                        <div class="stat-value" id="statCorrect">0</div>
+                        <div class="stat-label">Jawaban Benar</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statWrong">0</div>
+                        <div class="stat-label">Jawaban Salah</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statMaxCombo">0</div>
+                        <div class="stat-label">Max Combo</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statDifficulty">Mudah</div>
+                        <div class="stat-label">Level Tercapai</div>
+                    </div>
+                </div>
+
+                <button class="btn-restart" onclick="game.returnToMenu()">🏠 Kembali ke Menu</button>
+                <button class="btn-restart mt-10" onclick="game.restartGame()" style="background: linear-gradient(135deg, var(--secondary), #e5577a);">🔄 Main Lagi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ============================================================
+           NUSANTARA MEGA SCHOLAR - GAME ENGINE
+           ============================================================ */
+
+        /* ============================================
+           BANK SOAL - IPA (Fisika, Kimia, Biologi)
+           ============================================ */
+        const IPA_QUESTIONS = {
+            // MUDAH: Materi Kelas 10 Awal
+            easy: [
+                {
+                    q: "Simbol keselamatan kerja gambar tengkorak di lab kimia artinya?",
+                    options: ["Beracun/Toksik", "Mudah Terbakar", "Korosif", "Radioaktif"],
+                    correct: 0,
+                    sub: "Kimia"
+                },
+                {
+                    q: "Satuan SI untuk gaya adalah?",
+                    options: ["Joule", "Newton", "Watt", "Pascal"],
+                    correct: 1,
+                    sub: "Fisika"
+                },
+                {
+                    q: "Alat yang digunakan untuk mengukur suhu dalam eksperimen laboratorium adalah?",
+                    options: ["Barometer", "Termometer", "Higrometer", "Amperemeter"],
+                    correct: 1,
+                    sub: "Fisika"
+                },
+                {
+                    q: "Keanekaragaman hayati tingkat gen ditunjukkan oleh variasi dalam?",
+                    options: ["Spesies yang berbeda", "Satu spesies yang sama", "Ekosistem berbeda", "Habitat berbeda"],
+                    correct: 1,
+                    sub: "Biologi"
+                },
+                {
+                    q: "Zat kimia dengan rumus H₂O₂ dikenal sebagai?",
+                    options: ["Air biasa", "Hidrogen peroksida", "Asam sulfat", "Etanol"],
+                    correct: 1,
+                    sub: "Kimia"
+                },
+                {
+                    q: "Organisme yang dapat membuat makanannya sendiri melalui fotosintesis disebut?",
+                    options: ["Heterotrof", "Autotrof", "Saprofit", "Parasit"],
+                    correct: 1,
+                    sub: "Biologi"
+                },
+                {
+                    q: "Alat ukur panjang yang memiliki ketelitian 0,01 mm adalah?",
+                    options: ["Mistar", "Jangka sorong", "Mikrometer sekrup", "Meteran gulung"],
+                    correct: 2,
+                    sub: "Fisika"
+                },
+                {
+                    q: "Unsur kimia dengan lambang 'Na' adalah?",
+                    options: ["Nitrogen", "Nikel", "Natrium", "Neon"],
+                    correct: 2,
+                    sub: "Kimia"
+                },
+                {
+                    q: "Tingkat taksonomi makhluk hidup yang paling tinggi adalah?",
+                    options: ["Kingdom", "Filum", "Domain", "Kelas"],
+                    correct: 2,
+                    sub: "Biologi"
+                },
+                {
+                    q: "Gas yang paling banyak terkandung di atmosfer bumi adalah?",
+                    options: ["Oksigen", "Karbondioksida", "Nitrogen", "Hidrogen"],
+                    correct: 2,
+                    sub: "Kimia"
+                }
+            ],
+            // SEDANG: Materi Kelas 10 Akhir
+            medium: [
+                {
+                    q: "Alat ukur yang paling tepat untuk mengukur diameter dalam sebuah pipa kecil adalah?",
+                    options: ["Mistar", "Jangka sorong", "Mikrometer sekrup", "Meteran"],
+                    correct: 1,
+                    sub: "Fisika"
+                },
+                {
+                    q: "Perubahan lingkungan yang disebabkan oleh aktivitas manusia disebut?",
+                    options: ["Suksesi alam", "Kerusakan lingkungan", "Adaptasi", "Evolusi"],
+                    correct: 1,
+                    sub: "Biologi"
+                },
+                {
+                    q: "Sebuah mobil bergerak lurus beraturan dengan kecepatan 60 km/jam. Dalam 2 jam, jarak yang ditempuh adalah?",
+                    options: ["30 km", "60 km", "120 km", "180 km"],
+                    correct: 2,
+                    sub: "Fisika"
+                },
+                {
+                    q: "Nomor atom suatu unsur menunjukkan jumlah?",
+                    options: ["Neutron", "Proton", "Elektron + Neutron", "Proton + Neutron"],
+                    correct: 1,
+                    sub: "Kimia"
+                },
+                {
+                    q: "Hukum Newton pertama dikenal juga sebagai hukum?",
+                    options: ["Aksi-Reaksi", "Gravitasi", "Kelembaman (Inersia)", "Percepatan"],
+                    correct: 2,
+                    sub: "Fisika"
+                },
+                {
+                    q: "Lapisan atmosfer tempat terjadinya cuaca adalah?",
+                    options: ["Stratosfer", "Troposfer", "Mesosfer", "Termosfer"],
+                    correct: 1,
+                    sub: "Kimia"
+                },
+                {
+                    q: "Proses di mana tumbuhan melepaskan uap air melalui stomata disebut?",
+                    options: ["Evaporasi", "Transpirasi", "Respirasi", "Fotosintesis"],
+                    correct: 1,
+                    sub: "Biologi"
+                },
+                {
+                    q: "Isotop adalah atom-atom yang memiliki?",
+                    options: ["Nomor atom sama, nomor massa berbeda", "Nomor massa sama, nomor atom berbeda", "Jumlah neutron sama", "Jumlah elektron berbeda"],
+                    correct: 0,
+                    sub: "Kimia"
+                },
+                {
+                    q: "Gerak parabola merupakan kombinasi dari gerak?",
+                    options: ["GLB dan GLBB", "GLB dan GLB", "GLBB dan GLBB", "Melingkar dan lurus"],
+                    correct: 0,
+                    sub: "Fisika"
+                },
+                {
+                    q: "Ekosistem yang memiliki keanekaragaman hayati tertinggi adalah?",
+                    options: ["Gurun", "Hutan hujan tropis", "Tundra", "Padang rumput"],
+                    correct: 1,
+                    sub: "Biologi"
+                }
+            ],
+            // SULIT: Materi Kelas 11
+            hard: [
+                {
+                    q: "Organel sel yang berfungsi sebagai tempat respirasi seluler dan menghasilkan ATP adalah?",
+                    options: ["Ribosom", "Mitokondria", "Badan Golgi", "Retikulum Endoplasma"],
+                    correct: 1,
+                    sub: "Biologi"
+                },
+                {
+                    q: "Hukum termodinamika pertama berkaitan dengan?",
+                    options: ["Entropi", "Kekekalan energi", "Suhu absolut", "Kesetimbangan termal"],
+                    correct: 1,
+                    sub: "Fisika"
+                },
+                {
+                    q: "Dalam konsep mol, 1 mol zat mengandung partikel sebanyak?",
+                    options: ["6,02 × 10²²", "6,02 × 10²³", "6,02 × 10²⁴", "3,01 × 10²³"],
+                    correct: 1,
+                    sub: "Kimia"
+                },
+                {
+                    q: "Fluida yang mengalir melalui pipa dengan penampang lebih kecil akan memiliki kecepatan?",
+                    options: ["Lebih kecil", "Lebih besar", "Tetap sama", "Tidak dapat ditentukan"],
+                    correct: 1,
+                    sub: "Fisika"
+                },
+                {
+                    q: "Jaringan tumbuhan yang berfungsi mengangkut hasil fotosintesis dari daun ke seluruh tubuh adalah?",
+                    options: ["Xilem", "Floem", "Kambium", "Epidermis"],
+                    correct: 1,
+                    sub: "Biologi"
+                },
+                {
+                    q: "Reaksi eksoterm adalah reaksi yang?",
+                    options: ["Menyerap kalor", "Melepaskan kalor", "Tidak melibatkan kalor", "Membutuhkan katalis"],
+                    correct: 1,
+                    sub: "Kimia"
+                },
+                {
+                    q: "Prinsip Archimedes menyatakan bahwa gaya apung sama dengan?",
+                    options: ["Berat benda", "Volume benda", "Berat fluida yang dipindahkan", "Massa fluida"],
+                    correct: 2,
+                    sub: "Fisika"
+                },
+                {
+                    q: "Meiosis menghasilkan sel anak yang bersifat?",
+                    options: ["Diploid (2n)", "Haploid (n)", "Triploid (3n)", "Tetraploid (4n)"],
+                    correct: 1,
+                    sub: "Biologi"
+                },
+                {
+                    q: "Asam kuat dan basa kuat dalam air akan terionisasi?",
+                    options: ["Sebagian", "Sempurna", "Tidak sama sekali", "Tergantung suhu"],
+                    correct: 1,
+                    sub: "Kimia"
+                },
+                {
+                    q: "Hukum Bernoulli menjelaskan hubungan antara tekanan fluida dengan?",
+                    options: ["Massa jenis dan suhu", "Kecepatan dan ketinggian", "Volume dan massa", "Suhu dan tekanan"],
+                    correct: 1,
+                    sub: "Fisika"
+                }
+            ]
+        };
+
+        /* ============================================
+           BANK SOAL - IPS (Sosiologi, Geografi, Ekonomi)
+           ============================================ */
+        const IPS_QUESTIONS = {
+            // MUDAH: Materi Kelas 10 Awal
+            easy: [
+                {
+                    q: "Siapakah tokoh yang dikenal sebagai Bapak Sosiologi Dunia?",
+                    options: ["Karl Marx", "Max Weber", "Auguste Comte", "Emile Durkheim"],
+                    correct: 2,
+                    sub: "Sosiologi"
+                },
+                {
+                    q: "Lapisan bumi yang paling luar dan tempat kita tinggal disebut?",
+                    options: ["Mantel", "Inti", "Litosfer", "Atmosfer"],
+                    correct: 2,
+                    sub: "Geografi"
+                },
+                {
+                    q: "Masalah ekonomi muncul karena adanya?",
+                    options: ["Kelimpahan sumber daya", "Kelangkaan sumber daya", "Kemakmuran", "Kemiskinan"],
+                    correct: 1,
+                    sub: "Ekonomi"
+                },
+                {
+                    q: "Interaksi sosial yang membutuhkan syarat adanya?",
+                    options: ["Kontak sosial dan komunikasi", "Konflik dan persaingan", "Kerjasama dan akomodasi", "Dominasi dan subordinasi"],
+                    correct: 0,
+                    sub: "Sosiologi"
+                },
+                {
+                    q: "Konsep lokasi absolut dalam geografi merujuk pada?",
+                    options: ["Letak relatif suatu tempat", "Koordinat lintang dan bujur", "Jarak antar tempat", "Keterjangkauan suatu wilayah"],
+                    correct: 1,
+                    sub: "Geografi"
+                },
+                {
+                    q: "Kegiatan ekonomi yang mengolah bahan mentah menjadi barang jadi termasuk sektor?",
+                    options: ["Primer", "Sekunder", "Tersier", "Kuarter"],
+                    correct: 1,
+                    sub: "Ekonomi"
+                },
+                {
+                    q: "Nilai sosial yang bersifat universal dan berlaku di seluruh masyarakat disebut?",
+                    options: ["Nilai khusus", "Nilai dominan", "Nilai mendarah daging", "Nilai sosial umum"],
+                    correct: 3,
+                    sub: "Sosiologi"
+                },
+                {
+                    q: "Prinsip geografi yang menjelaskan persebaran fenomena di permukaan bumi adalah?",
+                    options: ["Prinsip interelasi", "Prinsip distribusi/spasial", "Prinsip deskripsi", "Prinsip korologi"],
+                    correct: 1,
+                    sub: "Geografi"
+                },
+                {
+                    q: "Sistem ekonomi di mana pemerintah mengendalikan seluruh kegiatan ekonomi disebut?",
+                    options: ["Ekonomi pasar", "Ekonomi campuran", "Ekonomi terpusat/komando", "Ekonomi tradisional"],
+                    correct: 2,
+                    sub: "Ekonomi"
+                },
+                {
+                    q: "Proses sosial yang mengarah pada perpecahan disebut?",
+                    options: ["Asosiatif", "Disosiatif", "Akulturasi", "Asimilasi"],
+                    correct: 1,
+                    sub: "Sosiologi"
+                }
+            ],
+            // SEDANG: Materi Kelas 10 Akhir
+            medium: [
+                {
+                    q: "Batuan yang terbentuk dari pembekuan magma yang keluar ke permukaan bumi disebut?",
+                    options: ["Batuan beku dalam", "Batuan beku luar", "Batuan sedimen", "Batuan metamorf"],
+                    correct: 1,
+                    sub: "Geografi"
+                },
+                {
+                    q: "Lembaga sosial yang mengatur hubungan kekerabatan dan pernikahan disebut lembaga?",
+                    options: ["Ekonomi", "Pendidikan", "Keluarga/kinship", "Politik"],
+                    correct: 2,
+                    sub: "Sosiologi"
+                },
+                {
+                    q: "Hukum permintaan menyatakan bahwa jika harga naik, maka jumlah barang yang diminta akan?",
+                    options: ["Naik", "Tetap", "Turun", "Tidak berubah"],
+                    correct: 2,
+                    sub: "Ekonomi"
+                },
+                {
+                    q: "Lapisan atmosfer yang mengandung lapisan ozon (O₃) adalah?",
+                    options: ["Troposfer", "Stratosfer", "Mesosfer", "Termosfer"],
+                    correct: 1,
+                    sub: "Geografi"
+                },
+                {
+                    q: "Perubahan sosial yang direncanakan dan dikehendaki oleh masyarakat disebut?",
+                    options: ["Revolusi", "Evolusi", "Social planning", "Social engineering"],
+                    correct: 3,
+                    sub: "Sosiologi"
+                },
+                {
+                    q: "Pasar di mana hanya ada satu penjual yang menguasai seluruh penawaran disebut?",
+                    options: ["Oligopoli", "Monopoli", "Persaingan sempurna", "Monopsoni"],
+                    correct: 1,
+                    sub: "Ekonomi"
+                },
+                {
+                    q: "Faktor endogen yang menyebabkan perubahan sosial adalah?",
+                    options: ["Peperangan", "Bencana alam", "Pertumbuhan penduduk", "Pengaruh budaya asing"],
+                    correct: 2,
+                    sub: "Sosiologi"
+                },
+                {
+                    q: "Siklus hidrologi yang airnya tidak kembali ke laut disebut?",
+                    options: ["Siklus pendek", "Siklus panjang", "Siklus sedang", "Siklus tertutup"],
+                    correct: 0,
+                    sub: "Geografi"
+                },
+                {
+                    q: "Kurva yang menunjukkan kombinasi dua barang yang memberikan tingkat kepuasan sama disebut?",
+                    options: ["Kurva permintaan", "Kurva penawaran", "Kurva indiferens", "Kurva produksi"],
+                    correct: 2,
+                    sub: "Ekonomi"
+                },
+                {
+                    q: "Mobilitas sosial vertikal ke bawah contohnya adalah?",
+                    options: ["Karyawan dipromosikan jadi manajer", "Pedagang bangkrut menjadi pengemis", "Pindah rumah ke kota lain", "Petani berganti ke nelayan"],
+                    correct: 1,
+                    sub: "Sosiologi"
+                }
+            ],
+            // SULIT: Materi Kelas 11
+            hard: [
+                {
+                    q: "Perubahan struktur sosial yang terjadi secara cepat dan mendasar dalam masyarakat disebut?",
+                    options: ["Evolusi sosial", "Revolusi sosial", "Akomodasi", "Asimilasi"],
+                    correct: 1,
+                    sub: "Sosiologi"
+                },
+                {
+                    q: "Transisi demografi tahap ke-3 ditandai dengan?",
+                    options: ["Kelahiran tinggi, kematian tinggi", "Kelahiran tinggi, kematian turun", "Kelahiran turun, kematian rendah", "Kelahiran rendah, kematian rendah"],
+                    correct: 2,
+                    sub: "Geografi"
+                },
+                {
+                    q: "Pendapatan nasional yang dihitung dari jumlah seluruh nilai tambah barang dan jasa disebut?",
+                    options: ["GDP/Produk Domestik Bruto", "GNP", "NNP", "Pendapatan Perseorangan"],
+                    correct: 0,
+                    sub: "Ekonomi"
+                },
+                {
+                    q: "Teori konflik dalam sosiologi dipelopori oleh?",
+                    options: ["Auguste Comte", "Emile Durkheim", "Karl Marx", "Max Weber"],
+                    correct: 2,
+                    sub: "Sosiologi"
+                },
+                {
+                    q: "Fenomena urbanisasi yang menyebabkan pertumbuhan kota tidak terkendali disebut?",
+                    options: ["Suburbanisasi", "Counter urbanization", "Primate city", "Urban sprawl"],
+                    correct: 3,
+                    sub: "Geografi"
+                },
+                {
+                    q: "Inflasi yang disebabkan oleh kenaikan biaya produksi disebut?",
+                    options: ["Demand-pull inflation", "Cost-push inflation", "Hyperinflation", "Stagflasi"],
+                    correct: 1,
+                    sub: "Ekonomi"
+                },
+                {
+                    q: "Konflik sosial yang bersifat laten artinya?",
+                    options: ["Terbuka dan tampak", "Tersembunyi/tidak tampak", "Sudah selesai", "Bersifat kekerasan"],
+                    correct: 1,
+                    sub: "Sosiologi"
+                },
+                {
+                    q: "Indeks Pembangunan Manusia (IPM) mengukur aspek?",
+                    options: ["Hanya ekonomi", "Kesehatan, pendidikan, dan standar hidup", "Hanya pendidikan", "Hanya kesehatan"],
+                    correct: 1,
+                    sub: "Geografi"
+                },
+                {
+                    q: "Kebijakan fiskal ekspansif dilakukan dengan cara?",
+                    options: ["Menaikkan pajak", "Menurunkan pengeluaran pemerintah", "Meningkatkan pengeluaran pemerintah", "Menaikkan suku bunga"],
+                    correct: 2,
+                    sub: "Ekonomi"
+                },
+                {
+                    q: "Stratifikasi sosial tertutup adalah sistem lapisan sosial yang?",
+                    options: ["Mudah berpindah status", "Sulit/tidak bisa berpindah status", "Tidak ada lapisan", "Berdasarkan prestasi"],
+                    correct: 1,
+                    sub: "Sosiologi"
+                }
+            ]
+        };
+
+        /* ============================================
+           BANK SOAL - BAHASA INDONESIA
+           ============================================ */
+        const BINDO_QUESTIONS = {
+            // MUDAH: Materi Kelas 10 Awal
+            easy: [
+                {
+                    q: "Bagian teks LHO yang berisi penjelasan detail mengenai objek yang diamati disebut?",
+                    options: ["Definisi umum", "Deskripsi bagian", "Deskripsi manfaat", "Simpulan"],
+                    correct: 1,
+                    sub: "Teks LHO"
+                },
+                {
+                    q: "Teks anekdot bertujuan untuk?",
+                    options: ["Menjelaskan proses", "Menghibur dan menyampaikan kritik", "Menceritakan pengalaman pribadi", "Mempengaruhi pembaca"],
+                    correct: 1,
+                    sub: "Teks Anekdot"
+                },
+                {
+                    q: "Struktur teks prosedur yang berisi langkah-langkah disebut?",
+                    options: ["Tujuan", "Material/alat", "Langkah-langkah", "Penutup"],
+                    correct: 2,
+                    sub: "Teks Prosedur"
+                },
+                {
+                    q: "Ciri kebahasaan teks laporan hasil observasi adalah menggunakan kalimat?",
+                    options: ["Imperatif", "Definisi dan deskriptif", "Persuasif", "Retoris"],
+                    correct: 1,
+                    sub: "Teks LHO"
+                },
+                {
+                    q: "Teks yang berisi cerita singkat dan menarik yang mengandung kritik sosial disebut?",
+                    options: ["Teks eksplanasi", "Teks anekdot", "Teks negosiasi", "Teks eksposisi"],
+                    correct: 1,
+                    sub: "Teks Anekdot"
+                },
+                {
+                    q: "Kata baku dari 'nasehat' adalah?",
+                    options: ["Nasehat", "Nasihat", "Nashihat", "Nasihad"],
+                    correct: 1,
+                    sub: "Kebahasaan"
+                },
+                {
+                    q: "Bagian orientasi dalam teks anekdot berisi?",
+                    options: ["Klimaks cerita", "Pendahuluan/pengenalan situasi", "Koda/penutup", "Abstrak"],
+                    correct: 1,
+                    sub: "Teks Anekdot"
+                },
+                {
+                    q: "Jenis kata yang menerangkan kata kerja disebut?",
+                    options: ["Adjektiva", "Nomina", "Adverbia", "Preposisi"],
+                    correct: 2,
+                    sub: "Kebahasaan"
+                },
+                {
+                    q: "Teks LHO bersifat?",
+                    options: ["Subjektif", "Objektif", "Fiktif", "Persuasif"],
+                    correct: 1,
+                    sub: "Teks LHO"
+                },
+                {
+                    q: "Konjungsi temporal menunjukkan hubungan?",
+                    options: ["Sebab-akibat", "Pertentangan", "Waktu", "Tujuan"],
+                    correct: 2,
+                    sub: "Kebahasaan"
+                }
+            ],
+            // SEDANG: Materi Kelas 10 Akhir
+            medium: [
+                {
+                    q: "Manakah penulisan kata baku yang benar di bawah ini?",
+                    options: ["Apotik", "Apotek", "Apotik", "Aphotek"],
+                    correct: 1,
+                    sub: "Kebahasaan"
+                },
+                {
+                    q: "Struktur teks negosiasi yang berisi penawaran solusi disebut?",
+                    options: ["Orientasi", "Pengajuan", "Penawaran", "Persetujuan"],
+                    correct: 2,
+                    sub: "Teks Negosiasi"
+                },
+                {
+                    q: "Teks biografi termasuk jenis teks?",
+                    options: ["Fiksi", "Non-fiksi", "Prosedur", "Anekdot"],
+                    correct: 1,
+                    sub: "Teks Biografi"
+                },
+                {
+                    q: "Kalimat efektif adalah kalimat yang?",
+                    options: ["Panjang dan bertele-tele", "Mudah dipahami dan tidak ambigu", "Menggunakan bahasa daerah", "Bersifat puitis"],
+                    correct: 1,
+                    sub: "Kebahasaan"
+                },
+                {
+                    q: "Unsur intrinsik biografi yang paling menonjol adalah?",
+                    options: ["Alur, tokoh, latar", "Rumus, data, analisis", "Orientasi, komplikasi, resolusi", "Abstrak, krisis, reaksi"],
+                    correct: 0,
+                    sub: "Teks Biografi"
+                },
+                {
+                    q: "Dalam teks negosiasi, bahasa yang digunakan bersifat?",
+                    options: ["Memerintah", "Sopan dan persuasif", "Mengancam", "Informal"],
+                    correct: 1,
+                    sub: "Teks Negosiasi"
+                },
+                {
+                    q: "Kata baku dari 'rizki' adalah?",
+                    options: ["Rizki", "Rezeki", "Rizeki", "Rizqy"],
+                    correct: 1,
+                    sub: "Kebahasaan"
+                },
+                {
+                    q: "Bagian akhir teks negosiasi yang berisi kesepakatan disebut?",
+                    options: ["Orientasi", "Pengajuan", "Penawaran", "Persetujuan"],
+                    correct: 3,
+                    sub: "Teks Negosiasi"
+                },
+                {
+                    q: "Ciri bahasa teks biografi banyak menggunakan?",
+                    options: ["Kalimat imperatif", "Kalimat pasif dan fakta", "Kalimat tanya", "Kalimat seruan"],
+                    correct: 1,
+                    sub: "Teks Biografi"
+                },
+                {
+                    q: "Kata 'di' sebagai preposisi penulisannya?",
+                    options: ["Digabung dengan kata berikutnya", "Dipisahkan dari kata berikutnya", "Tergantung konteks", "Selalu digabung"],
+                    correct: 1,
+                    sub: "Kebahasaan"
+                }
+            ],
+            // SULIT: Materi Kelas 11
+            hard: [
+                {
+                    q: "Bagian akhir dari teks eksplanasi yang berisi komentar atau kesimpulan atas fenomena disebut?",
+                    options: ["Pernyataan umum", "Deretan penjelas", "Interpretasi", "Abstrak"],
+                    correct: 2,
+                    sub: "Teks Eksplanasi"
+                },
+                {
+                    q: "Teks prosedur kompleks memiliki ciri?",
+                    options: ["Langkah sederhana", "Langkah bertingkat dengan sub-langkah", "Tanpa tujuan", "Hanya berisi material"],
+                    correct: 1,
+                    sub: "Teks Prosedur"
+                },
+                {
+                    q: "Unsur penilaian dalam resensi karya sastra yang menilai kelebihan dan kekurangan disebut?",
+                    options: ["Identitas karya", "Sinopsis", "Evaluasi/kelebihan-kekurangan", "Simpulan"],
+                    correct: 2,
+                    sub: "Resensi"
+                },
+                {
+                    q: "Teks eksplanasi bertujuan untuk?",
+                    options: ["Menghibur pembaca", "Menjelaskan proses terjadinya suatu fenomena", "Mempengaruhi pembaca", "Menceritakan pengalaman"],
+                    correct: 1,
+                    sub: "Teks Eksplanasi"
+                },
+                {
+                    q: "Struktur teks eksplanasi yang benar adalah?",
+                    options: ["Orientasi-komplikasi-resolusi", "Pernyataan umum-deretan penjelas-interpretasi", "Tujuan-material-langkah", "Abstrak-krisis-reaksi"],
+                    correct: 1,
+                    sub: "Teks Eksplanasi"
+                },
+                {
+                    q: "Dalam meresensi novel, aspek yang paling penting untuk dinilai adalah?",
+                    options: ["Harga buku", "Unsur intrinsik dan ekstrinsik", "Jumlah halaman", "Penerbit buku"],
+                    correct: 1,
+                    sub: "Resensi"
+                },
+                {
+                    q: "Kalimat majemuk bertingkat memiliki?",
+                    options: ["Dua klausa setara", "Induk kalimat dan anak kalimat", "Lebih dari 3 klausa setara", "Tanpa konjungsi"],
+                    correct: 1,
+                    sub: "Kebahasaan"
+                },
+                {
+                    q: "Teks prosedur kompleks sering menggunakan konjungsi?",
+                    options: ["Temporal (kemudian, setelah itu, selanjutnya)", "Pertentangan (tetapi, melainkan)", "Sebab-akibat (karena, sehingga)", "Pemilihan (atau, maupun)"],
+                    correct: 0,
+                    sub: "Teks Prosedur"
+                },
+                {
+                    q: "Sikap penulis yang terdapat dalam resensi disebut?",
+                    options: ["Objektivitas", "Subjektivitas/keberpihakan", "Ambiguitas", "Netralitas mutlak"],
+                    correct: 1,
+                    sub: "Resensi"
+                },
+                {
+                    q: "Fenomena alam seperti tsunami dan gempa bumi termasuk jenis teks eksplanasi?",
+                    options: ["Sosial", "Budaya", "Alam/kausalitas", "Kesehatan"],
+                    correct: 2,
+                    sub: "Teks Eksplanasi"
+                }
+            ]
+        };
+
+        /* ============================================
+           MATH QUEST GENERATOR ENGINE
+           Fungsi ini menghasilkan soal matematika secara dinamis
+           berdasarkan tingkat kesulitan yang aktif.
+           ============================================ */
+        function generateMathQuestion(difficulty) {
+            let question, correctAnswer, options, subTopic;
+
+            switch (difficulty) {
+                case 'easy':
+                    // MUDAH: Operasi penjumlahan dan pengurangan linear, rentang 1-50
+                    subTopic = "Operasi Dasar";
+                    const isAdd = Math.random() > 0.5;
+                    let a1, b1;
+
+                    if (isAdd) {
+                        // Penjumlahan: a + b, hasil maks 50
+                        a1 = Math.floor(Math.random() * 40) + 1;
+                        b1 = Math.floor(Math.random() * (50 - a1)) + 1;
+                        correctAnswer = a1 + b1;
+                        const wordProblems = [
+                            `Andi memiliki ${a1} apel, lalu ibunya memberinya ${b1} apel lagi. Berapa total apel Andi sekarang?`,
+                            `Di kebun ada ${a1} pohon mangga dan ${b1} pohon jambu. Berapa total pohon di kebun?`,
+                            `Siswa kelas A berjumlah ${a1} orang, kelas B ${b1} orang. Berapa total kedua kelas?`
+                        ];
+                        question = wordProblems[Math.floor(Math.random() * wordProblems.length)];
+                    } else {
+                        // Pengurangan: a - b, hasil positif, a maks 50
+                        correctAnswer = Math.floor(Math.random() * 40) + 1;
+                        b1 = Math.floor(Math.random() * 20) + 1;
+                        a1 = correctAnswer + b1;
+                        const wordProblems = [
+                            `Andi memiliki ${a1} apel, lalu memberikan ${b1} ke Budi. Berapa sisa apel Andi?`,
+                            `Toko memiliki ${a1} buku, terjual ${b1} buku. Berapa sisa buku di toko?`,
+                            `Seorang petani memiliki ${a1} ekor ayam, ${b1} ekor dijual. Berapa sisa ayam?`
+                        ];
+                        question = wordProblems[Math.floor(Math.random() * wordProblems.length)];
+                    }
+                    break;
+
+                case 'medium':
+                    // SEDANG: Perkalian, pembagian, operasi campuran (SMP-SMA Kelas 10)
+                    const operationType = Math.random();
+                    if (operationType < 0.35) {
+                        // Perkalian: basis angka 1-12
+                        subTopic = "Perkalian";
+                        const a2 = Math.floor(Math.random() * 12) + 1;
+                        const b2 = Math.floor(Math.random() * 12) + 1;
+                        question = `${a2} × ${b2} = ?`;
+                        correctAnswer = a2 * b2;
+                    } else if (operationType < 0.65) {
+                        // Pembagian: hasil bilangan bulat
+                        subTopic = "Pembagian";
+                        const b3 = Math.floor(Math.random() * 11) + 2; // pembagi 2-12
+                        const result = Math.floor(Math.random() * 12) + 1;
+                        const a3 = b3 * result;
+                        question = `${a3} ÷ ${b3} = ?`;
+                        correctAnswer = result;
+                    } else {
+                        // Operasi campuran tanpa tanda kurung
+                        subTopic = "Operasi Campuran";
+                        const opType = Math.random();
+                        if (opType < 0.5) {
+                            const m = Math.floor(Math.random() * 12) + 1;
+                            const n = Math.floor(Math.random() * 12) + 1;
+                            const p = Math.floor(Math.random() * 20) + 1;
+                            question = `${m} × ${n} + ${p} = ?`;
+                            correctAnswer = m * n + p;
+                        } else {
+                            const m = Math.floor(Math.random() * 50) + 10;
+                            const n = Math.floor(Math.random() * 20) + 1;
+                            const p = Math.floor(Math.random() * 10) + 1;
+                            question = `${m} - ${n} + ${p} = ?`;
+                            correctAnswer = m - n + p;
+                        }
+                    }
+                    break;
+
+                case 'hard':
+                    // SULIT: Tanda kurung, kuadrat/akar, variabel linear (SMA Kelas 10-11)
+                    const hardType = Math.random();
+                    if (hardType < 0.35) {
+                        // Operasi tanda kurung: (a - b) × c
+                        subTopic = "Operasi Kurung";
+                        const a4 = Math.floor(Math.random() * 15) + 5;
+                        const b4 = Math.floor(Math.random() * (a4 - 1)) + 1;
+                        const c4 = Math.floor(Math.random() * 10) + 2;
+                        question = `(${a4} - ${b4}) × ${c4} = ?`;
+                        correctAnswer = (a4 - b4) * c4;
+                    } else if (hardType < 0.65) {
+                        // Kuadrat dan akar sederhana
+                        subTopic = "Kuadrat & Akar";
+                        if (Math.random() > 0.5) {
+                            // a² - b
+                            const base = Math.floor(Math.random() * 8) + 3; // 3-10
+                            const subtract = Math.floor(Math.random() * 20) + 1;
+                            question = `${base}² - ${subtract} = ?`;
+                            correctAnswer = base * base - subtract;
+                        } else {
+                            // √a + b (a adalah kuadrat sempurna)
+                            const roots = [4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144];
+                            const perfectSquare = roots[Math.floor(Math.random() * roots.length)];
+                            const addVal = Math.floor(Math.random() * 20) + 1;
+                            question = `√${perfectSquare} + ${addVal} = ?`;
+                            correctAnswer = Math.sqrt(perfectSquare) + addVal;
+                        }
+                    } else {
+                        // Mencari variabel linear: ax = b → cari x
+                        subTopic = "Persamaan Linear";
+                        const a5 = Math.floor(Math.random() * 9) + 2; // 2-10
+                        const x = Math.floor(Math.random() * 15) + 1;
+                        const b5 = a5 * x;
+                        question = `Jika ${a5}x = ${b5}, berapakah nilai x?`;
+                        correctAnswer = x;
+                    }
+                    break;
+            }
+
+            // Generate 3 jawaban pengecoh yang masuk akal
+            options = generateDistractors(correctAnswer, difficulty);
+
+            return {
+                q: question,
+                options: options,
+                correct: options.indexOf(correctAnswer),
+                sub: subTopic
+            };
+        }
+
+        /**
+         * generateDistractors - Membuat 3 jawaban pengecoh yang masuk akal
+         * berdasarkan jawaban benar dan tingkat kesulitan
+         * @param {number} correct - Jawaban yang benar
+         * @param {string} difficulty - Tingkat kesulitan ('easy', 'medium', 'hard')
+         * @returns {number[]} Array 4 jawaban (1 benar + 3 pengecoh)
+         */
+        function generateDistractors(correct, difficulty) {
+            const distractors = new Set();
+            distractors.add(correct);
+
+            // Variasi pengecoh berdasarkan kesalahan umum siswa
+            const possibleErrors = [
+                correct + 1,
+                correct - 1,
+                correct + 2,
+                correct - 2,
+                correct + 5,
+                correct - 5,
+                correct + 10,
+                correct - 10,
+                correct * 2,
+                Math.floor(correct / 2),
+                correct + Math.floor(Math.random() * 5) + 1,
+                correct - Math.floor(Math.random() * 5) - 1
+            ];
+
+            for (const err of possibleErrors) {
+                if (distractors.size >= 4) break;
+                if (err !== correct && err > 0 && !distractors.has(err)) {
+                    distractors.add(err);
+                }
+            }
+
+            // Jika belum cukup, tambahkan angka acak di sekitar jawaban benar
+            let attempts = 0;
+            while (distractors.size < 4 && attempts < 50) {
+                const range = difficulty === 'easy' ? 15 : difficulty === 'medium' ? 20 : 30;
+                const randomWrong = correct + Math.floor(Math.random() * range * 2) - range;
+                if (randomWrong > 0 && randomWrong !== correct && !distractors.has(randomWrong)) {
+                    distractors.add(randomWrong);
+                }
+                attempts++;
+            }
+
+            // Konversi ke array dan acak posisi
+            const resultArray = Array.from(distractors);
+            shuffleArray(resultArray);
+            return resultArray.slice(0, 4);
+        }
+
+        /* ============================================
+           UTILITY FUNCTIONS
+           ============================================ */
+
+        /**
+         * shuffleArray - Mengacak elemen array (Fisher-Yates shuffle)
+         * @param {Array} arr - Array yang akan diacak
+         */
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+        }
+
+        /**
+         * getDifficultyByScore - Menentukan tingkat kesulitan berdasarkan skor
+         * @param {number} score - Skor pemain saat ini
+         * @returns {string} 'easy', 'medium', atau 'hard'
+         */
+        function getDifficultyByScore(score) {
+            if (score <= 50) return 'easy';
+            if (score <= 120) return 'medium';
+            return 'hard';
+        }
+
+        /**
+         * getTimeForDifficulty - Mengambil waktu per soal berdasarkan kesulitan
+         * @param {string} difficulty - Tingkat kesulitan
+         * @param {string} category - Kategori soal
+         * @returns {number} Waktu dalam detik
+         */
+        function getTimeForDifficulty(difficulty, category) {
+            if (category === 'math') {
+                switch (difficulty) {
+                    case 'easy': return 15;
+                    case 'medium': return 10;
+                    case 'hard': return 7;
+                    default: return 15;
+                }
+            } else {
+                switch (difficulty) {
+                    case 'easy': return 15;
+                    case 'medium': return 12;
+                    case 'hard': return 8;
+                    default: return 15;
+                }
+            }
+        }
+
+        /**
+         * getDifficultyLabel - Mengambil label teks untuk tampilan
+         * @param {string} difficulty - Tingkat kesulitan
+         * @returns {string} Label dalam bahasa Indonesia
+         */
+        function getDifficultyLabel(difficulty) {
+            switch (difficulty) {
+                case 'easy': return 'MUDAH';
+                case 'medium': return 'SEDANG';
+                case 'hard': return 'SULIT';
+                default: return 'MUDAH';
+            }
+        }
+
+        /* ============================================
+           GAME ENGINE CLASS
+           Class utama yang mengelola seluruh logika permainan
+           ============================================ */
+        class GameEngine {
+            constructor() {
+                // State game
+                this.currentCategory = null;
+                this.score = 0;
+                this.lives = 3;
+                this.combo = 0;
+                this.maxCombo = 0;
+                this.currentQuestion = null;
+                this.correctAnswers = 0;
+                this.wrongAnswers = 0;
+                this.currentDifficulty = 'easy';
+                this.questionCount = 0;
+
+                // Timer
+                this.timer = null;
+                this.timeLeft = 0;
+                this.maxTime = 15;
+
+                // Used questions tracking (per category per difficulty)
+                this.usedQuestions = {
+                    ipa: { easy: [], medium: [], hard: [] },
+                    ips: { easy: [], medium: [], hard: [] },
+                    bindo: { easy: [], medium: [], hard: [] }
+                };
+
+                // High scores
+                this.highScores = this.loadHighScores();
+
+                // DOM references
+                this.screens = {
+                    mainMenu: document.getElementById('mainMenu'),
+                    gameScreen: document.getElementById('gameScreen'),
+                    gameOverScreen: document.getElementById('gameOverScreen')
+                };
+
+                // Initialize
+                this.updateGlobalHighscore();
+            }
+
+            /* ---------- SCREEN MANAGEMENT ---------- */
+            showScreen(screenName) {
+                Object.values(this.screens).forEach(s => s.classList.remove('active'));
+                this.screens[screenName].classList.add('active');
+            }
+
+            /* ---------- CATEGORY SELECTION ---------- */
+            startCategory(category) {
+                this.currentCategory = category;
+                this.score = 0;
+                this.lives = 3;
+                this.combo = 0;
+                this.maxCombo = 0;
+                this.correctAnswers = 0;
+                this.wrongAnswers = 0;
+                this.currentDifficulty = 'easy';
+                this.questionCount = 0;
+
+                // Reset used questions for fresh play
+                this.usedQuestions = {
+                    ipa: { easy: [], medium: [], hard: [] },
+                    ips: { easy: [], medium: [], hard: [] },
+                    bindo: { easy: [], medium: [], hard: [] }
+                };
+
+                this.showScreen('gameScreen');
+                this.updateUI();
+                this.nextQuestion();
+            }
+
+            /* ---------- QUESTION LOADING ---------- */
+            nextQuestion() {
+                // Update difficulty based on current score
+                this.currentDifficulty = getDifficultyByScore(this.score);
+                this.updateDifficultyIndicator();
+
+                // Check for milestone celebration
+                if (this.score > 120 && this.score - 10 <= 120) {
+                    this.triggerCelebration();
+                }
+
+                // Get question based on category
+                let questionData;
+                if (this.currentCategory === 'math') {
+                    // Matematika: gunakan generator otomatis
+                    questionData = generateMathQuestion(this.currentDifficulty);
+                } else {
+                    // IPA, IPS, Bindindo: gunakan bank soal
+                    questionData = this.getQuestionFromBank();
+                }
+
+                if (!questionData) {
+                    // Jika soal habis, restart dengan soal yang sudah terpakai
+                    this.questionCount = 0;
+                    this.usedQuestions[this.currentCategory] = {
+                        easy: [], medium: [], hard: []
+                    };
+                    questionData = this.currentCategory === 'math'
+                        ? generateMathQuestion(this.currentDifficulty)
+                        : this.getQuestionFromBank();
+                }
+
+                this.currentQuestion = questionData;
+                this.questionCount++;
+
+                // Render question
+                this.renderQuestion(questionData);
+
+                // Start timer
+                this.startTimer();
+            }
+
+            /**
+             * getQuestionFromBank - Mengambil soal dari bank soal
+             * dengan sistem tracking soal yang sudah digunakan
+             * untuk menghindari pengulangan dalam satu sesi
+             */
+            getQuestionFromBank() {
+                let bank;
+                switch (this.currentCategory) {
+                    case 'ipa': bank = IPA_QUESTIONS; break;
+                    case 'ips': bank = IPS_QUESTIONS; break;
+                    case 'bindo': bank = BINDO_QUESTIONS; break;
+                    default: bank = IPA_QUESTIONS;
+                }
+
+                const difficultyQuestions = bank[this.currentDifficulty];
+                const usedIndices = this.usedQuestions[this.currentCategory][this.currentDifficulty];
+
+                // Filter soal yang belum digunakan
+                const availableIndices = [];
+                for (let i = 0; i < difficultyQuestions.length; i++) {
+                    if (!usedIndices.includes(i)) {
+                        availableIndices.push(i);
+                    }
+                }
+
+                // Jika semua soal sudah terpakai, reset dan ambil acak
+                if (availableIndices.length === 0) {
+                    this.usedQuestions[this.currentCategory][this.currentDifficulty] = [];
+                    return difficultyQuestions[Math.floor(Math.random() * difficultyQuestions.length)];
+                }
+
+                // Ambil soal acak dari yang tersedia
+                const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+                this.usedQuestions[this.currentCategory][this.currentDifficulty].push(randomIndex);
+
+                const question = difficultyQuestions[randomIndex];
+                return {
+                    q: question.q,
+                    options: [...question.options],
+                    correct: question.correct,
+                    sub: question.sub
+                };
+            }
+
+            /* ---------- RENDERING ---------- */
+            renderQuestion(questionData) {
+                const questionText = document.getElementById('questionText');
+                const questionMath = document.getElementById('questionMath');
+                const questionTag = document.getElementById('questionTag');
+                const answersGrid = document.getElementById('answersGrid');
+
+                // Update category tag
+                const categoryLabels = {
+                    ipa: 'IPA',
+                    ips: 'IPS',
+                    bindo: 'Bahasa Indonesia',
+                    math: 'Matematika'
+                };
+                questionTag.textContent = `${categoryLabels[this.currentCategory]} - ${questionData.sub}`;
+
+                // Show/hide math display
+                if (this.currentCategory === 'math' && (this.currentDifficulty === 'medium' || this.currentDifficulty === 'hard')) {
+                    questionText.style.display = 'none';
+                    questionMath.style.display = 'block';
+                    questionMath.textContent = questionData.q;
+                } else {
+                    questionText.style.display = 'block';
+                    questionMath.style.display = 'none';
+                    questionText.textContent = questionData.q;
+                }
+
+                // Reset answer buttons
+                const buttons = answersGrid.querySelectorAll('.answer-btn');
+                const optionLabels = ['A', 'B', 'C', 'D'];
+                buttons.forEach((btn, index) => {
+                    btn.className = 'answer-btn';
+                    btn.disabled = false;
+                    btn.querySelector('.option-label').textContent = optionLabels[index];
+                    btn.querySelector('.option-text').textContent = questionData.options[index];
+                });
+
+                // Animate question card
+                const questionCard = document.getElementById('questionCard');
+                questionCard.style.animation = 'none';
+                questionCard.offsetHeight; // Trigger reflow
+                questionCard.style.animation = 'slideInRight 0.4s ease';
+            }
+
+            /* ---------- ANSWER HANDLING ---------- */
+            selectAnswer(index) {
+                if (!this.currentQuestion) return;
+
+                // Disable all buttons
+                const buttons = document.querySelectorAll('.answer-btn');
+                buttons.forEach(btn => btn.disabled = true);
+
+                // Stop timer
+                this.stopTimer();
+
+                const isCorrect = index === this.currentQuestion.correct;
+                const correctIndex = this.currentQuestion.correct;
+
+                if (isCorrect) {
+                    // Handle correct answer
+                    buttons[index].classList.add('correct');
+                    this.handleCorrectAnswer();
+                } else {
+                    // Handle wrong answer
+                    buttons[index].classList.add('wrong');
+                    buttons[correctIndex].classList.add('correct');
+                    this.handleWrongAnswer();
+                }
+
+                // Next question after delay
+                setTimeout(() => {
+                    if (this.lives > 0) {
+                        this.nextQuestion();
+                    } else {
+                        this.gameOver();
+                    }
+                }, 1200);
+            }
+
+            /**
+             * handleCorrectAnswer - Logika saat jawaban benar
+             * Menambahkan skor, combo, dan bonus waktu
+             */
+            handleCorrectAnswer() {
+                // Base score: +10 points
+                let pointsEarned = 10;
+
+                // Time bonus: +1 point per remaining second
+                const timeBonus = this.timeLeft;
+                pointsEarned += timeBonus;
+
+                // Combo bonus: +2 per combo streak
+                this.combo++;
+                if (this.combo > this.maxCombo) this.maxCombo = this.combo;
+                const comboBonus = this.combo > 1 ? (this.combo - 1) * 2 : 0;
+                pointsEarned += comboBonus;
+
+                this.score += pointsEarned;
+                this.correctAnswers++;
+
+                // Show score popup
+                this.showScorePopup(`+${pointsEarned}`);
+
+                // Show combo display for streaks >= 3
+                if (this.combo >= 3) {
+                    this.showComboDisplay(`🔥 ${this.combo}x COMBO!`);
+                }
+
+                this.updateUI();
+            }
+
+            /**
+             * handleWrongAnswer - Logika saat jawaban salah
+             * Mengurangi nyawa, reset combo, efek visual
+             */
+            handleWrongAnswer() {
+                this.lives--;
+                this.combo = 0;
+                this.wrongAnswers++;
+
+                // Screen shake effect
+                const appContainer = document.querySelector('.app-container');
+                appContainer.classList.add('shake-anim');
+                setTimeout(() => appContainer.classList.remove('shake-anim'), 500);
+
+                // Red flash
+                const flashOverlay = document.getElementById('flashOverlay');
+                flashOverlay.classList.add('red');
+                setTimeout(() => flashOverlay.classList.remove('red'), 400);
+
+                this.updateUI();
+            }
+
+            /* ---------- TIMER ---------- */
+            startTimer() {
+                this.stopTimer();
+                this.maxTime = getTimeForDifficulty(this.currentDifficulty, this.currentCategory);
+                this.timeLeft = this.maxTime;
+
+                this.updateTimerDisplay();
+
+                this.timer = setInterval(() => {
+                    this.timeLeft -= 0.1;
+                    if (this.timeLeft <= 0) {
+                        this.timeLeft = 0;
+                        this.stopTimer();
+                        this.handleTimeUp();
+                    }
+                    this.updateTimerDisplay();
+                }, 100);
+            }
+
+            stopTimer() {
+                if (this.timer) {
+                    clearInterval(this.timer);
+                    this.timer = null;
+                }
+            }
+
+            /**
+             * handleTimeUp - Logika saat waktu habis
+             * Diperlakukan sama dengan jawaban salah
+             */
+            handleTimeUp() {
+                const buttons = document.querySelectorAll('.answer-btn');
+                buttons.forEach(btn => btn.disabled = true);
+
+                // Show correct answer
+                const correctIndex = this.currentQuestion.correct;
+                buttons[correctIndex].classList.add('correct');
+
+                this.lives--;
+                this.combo = 0;
+                this.wrongAnswers++;
+
+                // Screen shake
+                const appContainer = document.querySelector('.app-container');
+                appContainer.classList.add('shake-anim');
+                setTimeout(() => appContainer.classList.remove('shake-anim'), 500);
+
+                // Red flash
+                const flashOverlay = document.getElementById('flashOverlay');
+                flashOverlay.classList.add('red');
+                setTimeout(() => flashOverlay.classList.remove('red'), 400);
+
+                this.updateUI();
+
+                setTimeout(() => {
+                    if (this.lives > 0) {
+                        this.nextQuestion();
+                    } else {
+                        this.gameOver();
+                    }
+                }, 1200);
+            }
+
+            updateTimerDisplay() {
+                const timerBar = document.getElementById('timerBar');
+                const timerText = document.getElementById('timerText');
+
+                const percentage = (this.timeLeft / this.maxTime) * 100;
+                timerBar.style.width = percentage + '%';
+
+                // Color changes based on time remaining
+                timerBar.classList.remove('warning', 'danger');
+                if (percentage <= 25) {
+                    timerBar.classList.add('danger');
+                } else if (percentage <= 50) {
+                    timerBar.classList.add('warning');
+                }
+
+                timerText.textContent = Math.ceil(this.timeLeft);
+            }
+
+            /* ---------- UI UPDATES ---------- */
+            updateUI() {
+                document.getElementById('scoreDisplay').textContent = this.score;
+                document.getElementById('livesDisplay').textContent = this.lives;
+                document.getElementById('comboDisplayStat').textContent = this.combo;
+            }
+
+            updateDifficultyIndicator() {
+                const indicator = document.getElementById('difficultyIndicator');
+                const label = getDifficultyLabel(this.currentDifficulty);
+
+                indicator.textContent = label;
+                indicator.className = 'difficulty-indicator ' + this.currentDifficulty;
+            }
+
+            /* ---------- VISUAL EFFECTS ---------- */
+            showScorePopup(text) {
+                const popup = document.createElement('div');
+                popup.className = 'score-popup';
+                popup.textContent = text;
+                popup.style.left = '50%';
+                popup.style.top = '40%';
+                popup.style.transform = 'translateX(-50%)';
+                document.getElementById('questionCard').appendChild(popup);
+                setTimeout(() => popup.remove(), 1000);
+            }
+
+            showComboDisplay(text) {
+                const comboEl = document.getElementById('comboDisplay');
+                comboEl.textContent = text;
+                comboEl.classList.add('show');
+                setTimeout(() => comboEl.classList.remove('show'), 1000);
+            }
+
+            /**
+             * triggerCelebration - Menampilkan animasi confetti dan pesan
+             * saat pemain mencapai level SULIT (skor > 120)
+             */
+            triggerCelebration() {
+                const overlay = document.getElementById('celebrationOverlay');
+                overlay.classList.add('show');
+
+                // Spawn confetti
+                this.spawnConfetti(50);
+
+                setTimeout(() => {
+                    overlay.classList.remove('show');
+                }, 2500);
+            }
+
+            spawnConfetti(count) {
+                const container = document.getElementById('confettiContainer');
+                const colors = ['#6C63FF', '#FF6584', '#00D2FF', '#00C853', '#FF9800', '#FFD700', '#F44336'];
+
+                for (let i = 0; i < count; i++) {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.width = (Math.random() * 10 + 5) + 'px';
+                    confetti.style.height = (Math.random() * 10 + 5) + 'px';
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    confetti.style.animationDelay = (Math.random() * 1) + 's';
+                    container.appendChild(confetti);
+
+                    setTimeout(() => confetti.remove(), 4000);
+                }
+            }
+
+            /* ---------- GAME OVER ---------- */
+            gameOver() {
+                this.stopTimer();
+                this.showScreen('gameOverScreen');
+
+                // Update high score
+                this.updateHighScore();
+
+                // Display final score
+                document.getElementById('finalScore').textContent = this.score;
+
+                // Stats
+                document.getElementById('statCorrect').textContent = this.correctAnswers;
+                document.getElementById('statWrong').textContent = this.wrongAnswers;
+                document.getElementById('statMaxCombo').textContent = this.maxCombo;
+                document.getElementById('statDifficulty').textContent = getDifficultyLabel(this.currentDifficulty);
+
+                // Generate badges
+                this.generateBadges();
+
+                // Confetti for good scores
+                if (this.score >= 100) {
+                    this.spawnConfetti(30);
+                }
+            }
+
+            generateBadges() {
+                const container = document.getElementById('badgeContainer');
+                container.innerHTML = '';
+
+                const badges = [
+                    { icon: '🥉', name: 'Pemula', condition: this.score >= 20 },
+                    { icon: '🥈', name: 'Pintar', condition: this.score >= 50 },
+                    { icon: '🥇', name: 'Jenius', condition: this.score >= 120 },
+                    { icon: '👑', name: 'Master', condition: this.score >= 200 },
+                    { icon: '💎', name: 'Legendaris', condition: this.score >= 300 },
+                    { icon: '🔥', name: 'Combo Master', condition: this.maxCombo >= 5 },
+                ];
+
+                badges.forEach(badge => {
+                    const badgeEl = document.createElement('div');
+                    badgeEl.className = 'badge' + (badge.condition ? ' earned' : '');
+                    badgeEl.innerHTML = `
+                        <div class="badge-icon">${badge.icon}</div>
+                        <div class="badge-name">${badge.name}</div>
+                    `;
+                    container.appendChild(badgeEl);
+                });
+            }
+
+            /* ---------- HIGH SCORES ---------- */
+            loadHighScores() {
+                try {
+                    const saved = localStorage.getItem('nusantaraMegaScholar_highscores');
+                    return saved ? JSON.parse(saved) : {};
+                } catch {
+                    return {};
+                }
+            }
+
+            saveHighScores() {
+                try {
+                    localStorage.setItem('nusantaraMegaScholar_highscores', JSON.stringify(this.highScores));
+                } catch {
+                    // Silently fail if localStorage not available
+                }
+            }
+
+            updateHighScore() {
+                const category = this.currentCategory;
+                if (!this.highScores[category] || this.score > this.highScores[category]) {
+                    this.highScores[category] = this.score;
+                    this.saveHighScores();
+                }
+            }
+
+            updateGlobalHighscore() {
+                const globalBest = Math.max(0, ...Object.values(this.highScores));
+                document.getElementById('globalHighscore').textContent = globalBest;
+            }
+
+            /* ---------- NAVIGATION ---------- */
+            restartGame() {
+                if (this.currentCategory) {
+                    this.startCategory(this.currentCategory);
+                }
+            }
+
+            returnToMenu() {
+                this.stopTimer();
+                this.updateGlobalHighscore();
+                this.showScreen('mainMenu');
+            }
+        }
+
+        /* ============================================
+           INITIALIZE GAME
+           ============================================ */
+        const game = new GameEngine();
+    </script>
+</body>
+</html>
+```
